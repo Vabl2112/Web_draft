@@ -227,7 +227,7 @@ export function Header() {
                     </>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link href="/">Мой профиль</Link>
+                    <Link href={user.role === "master" ? `/master/${user.id}` : "/profile"}>Мой профиль</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/favorites">Избранное</Link>

@@ -43,18 +43,18 @@ const mockArtistData: ArtistProfile = {
     }
   ],
   portfolio: [
-    { id: "1", imageUrl: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=600&fit=crop", title: "Реализм", height: "large" },
-    { id: "2", imageUrl: "https://images.unsplash.com/photo-1590246815117-0ec27ac9bc95?w=400&h=500&fit=crop", title: "Графика", height: "medium" },
-    { id: "3", imageUrl: "https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=300&fit=crop", title: "Минимализм", height: "small" },
-    { id: "4", imageUrl: "https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=350&fit=crop", title: "Блэкворк", height: "small" },
-    { id: "5", imageUrl: "https://images.unsplash.com/photo-1475180429745-21de9a24a9fb?w=400&h=550&fit=crop", title: "Портрет", height: "large" },
-    { id: "6", imageUrl: "https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=400&h=400&fit=crop", title: "Геометрия", height: "medium" },
-    { id: "7", imageUrl: "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=450&fit=crop", title: "Цветная", height: "medium" },
-    { id: "8", imageUrl: "https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=400&h=380&fit=crop", title: "Абстракция", height: "small" },
-    { id: "9", imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=520&fit=crop", title: "Природа", height: "large" },
-    { id: "10", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=320&fit=crop", title: "Животные", height: "small" },
-    { id: "11", imageUrl: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&h=480&fit=crop", title: "Акварель", height: "medium" },
-    { id: "12", imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=550&fit=crop", title: "Искусство", height: "large" }
+    { id: "1", images: ["https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=600&fit=crop", "https://images.unsplash.com/photo-1590246814883-57764a58d1a3?w=400&h=600&fit=crop"], title: "Реализм", description: "Портретная работа в стиле реализм", height: "large" },
+    { id: "2", images: ["https://images.unsplash.com/photo-1590246815117-0ec27ac9bc95?w=400&h=500&fit=crop"], title: "Графика", height: "medium" },
+    { id: "3", images: ["https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=300&fit=crop", "https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=400&h=300&fit=crop"], title: "Минимализм", height: "small" },
+    { id: "4", images: ["https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=350&fit=crop"], title: "Блэкворк", height: "small" },
+    { id: "5", images: ["https://images.unsplash.com/photo-1475180429745-21de9a24a9fb?w=400&h=550&fit=crop"], title: "Портрет", height: "large" },
+    { id: "6", images: ["https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=400&fit=crop"], title: "Геометрия", description: "Сложная геометрическая композиция", height: "medium" },
+    { id: "7", images: ["https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=450&fit=crop"], title: "Цветная", height: "medium" },
+    { id: "8", images: ["https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=400&h=380&fit=crop"], title: "Абстракция", height: "small" },
+    { id: "9", images: ["https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=520&fit=crop"], title: "Природа", height: "large" },
+    { id: "10", images: ["https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=320&fit=crop"], title: "Животные", height: "small" },
+    { id: "11", images: ["https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&h=480&fit=crop"], title: "Акварель", height: "medium" },
+    { id: "12", images: ["https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=550&fit=crop"], title: "Искусство", height: "large" }
   ],
   reviews: [
     {
