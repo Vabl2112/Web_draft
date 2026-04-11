@@ -133,9 +133,11 @@ export function Header() {
               ))}
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Button variant="outline" size="sm" className="w-full">
-                  Все уведомления
-                </Button>
+                <Link href="/notifications">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Все уведомления
+                  </Button>
+                </Link>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -177,9 +179,11 @@ export function Header() {
               ))}
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Button variant="outline" size="sm" className="w-full">
-                  Все сообщения
-                </Button>
+                <Link href="/messages">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Все сообщения
+                  </Button>
+                </Link>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -197,10 +201,18 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>Мой профиль</DropdownMenuItem>
-              <DropdownMenuItem>Избранное</DropdownMenuItem>
-              <DropdownMenuItem>Мои записи</DropdownMenuItem>
-              <DropdownMenuItem>Настройки</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/profile">Мой профиль</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/favorites">Избранное</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/appointments">Мои записи</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Настройки</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">Выйти</DropdownMenuItem>
             </DropdownMenuContent>

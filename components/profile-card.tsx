@@ -5,6 +5,7 @@ import { Star, MapPin, MessageSquare, Heart, Share2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { MessageDialog } from "@/components/message-dialog"
 import { cn } from "@/lib/utils"
 import type { Artist } from "@/lib/types"
 
@@ -14,6 +15,7 @@ interface ProfileCardProps {
 
 export function ProfileCard({ artist }: ProfileCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const [messageOpen, setMessageOpen] = useState(false)
 
   return (
     <div className="flex flex-col gap-6 pb-6 lg:flex-row lg:items-start lg:gap-8">
@@ -68,7 +70,10 @@ export function ProfileCard({ artist }: ProfileCardProps) {
         </p>
         
         <div className="flex flex-wrap items-center gap-3">
-          <Button className="gap-2 px-6 py-5 text-base font-semibold">
+          <Button 
+            className="gap-2 px-6 py-5 text-base font-semibold"
+            onClick={() => setMessageOpen(true)}
+          >
             <MessageSquare className="size-5" />
             Написать
           </Button>
@@ -110,6 +115,16 @@ export function ProfileCard({ artist }: ProfileCardProps) {
           ))}
         </div>
       </div>
+      
+      <MessageDialog
+        open={messageOpen}
+        onOpenChange={setMessageOpen}
+        artist={{
+          id: artist.id,
+          name: artist.name,
+          avatar: artist.avatar,
+        }}
+      />
     </div>
   )
 }
