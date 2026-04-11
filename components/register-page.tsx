@@ -2,13 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2, Check } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2, Check, Briefcase, UserCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+
+type UserRole = "user" | "master"
 
 const passwordRequirements = [
   { id: "length", label: "Минимум 8 символов", test: (p: string) => p.length >= 8 },
@@ -20,6 +22,7 @@ const passwordRequirements = [
 export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [role, setRole] = useState<UserRole>("user")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -130,6 +133,56 @@ export function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Role Selection */}
+            <div className="space-y-3">
+              <Label>Я регистрируюсь как</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole("user")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    role === "user"
+                      ? "border-foreground bg-foreground/5 shadow-sm"
+                      : "border-border hover:border-foreground/30"
+                  )}
+                >
+                  <div className={cn(
+                    "flex size-12 items-center justify-center rounded-full transition-colors",
+                    role === "user" ? "bg-foreground text-background" : "bg-muted"
+                  )}>
+                    <UserCircle className="size-6" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium">Пользователь</p>
+                    <p className="text-xs text-muted-foreground">Ищу мастера</p>
+                  </div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setRole("master")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    role === "master"
+                      ? "border-amber-500 bg-amber-500/5 shadow-sm"
+                      : "border-border hover:border-amber-500/30"
+                  )}
+                >
+                  <div className={cn(
+                    "flex size-12 items-center justify-center rounded-full transition-colors",
+                    role === "master" ? "bg-amber-500 text-white" : "bg-muted"
+                  )}>
+                    <Briefcase className="size-6" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium">Мастер</p>
+                    <p className="text-xs text-muted-foreground">Предлагаю услуги</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Имя</Label>
@@ -262,7 +315,10 @@ export function RegisterPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="h-12 w-full gap-2 text-base"
+              className={cn(
+                "h-12 w-full gap-2 text-base",
+                role === "master" && "bg-amber-500 hover:bg-amber-600"
+              )}
               disabled={isLoading || !agreeTerms || !allRequirementsMet}
             >
               {isLoading ? (
@@ -272,7 +328,7 @@ export function RegisterPage() {
                 </>
               ) : (
                 <>
-                  Создать аккаунт
+                  {role === "master" ? "Стать мастером" : "Создать аккаунт"}
                   <ArrowRight className="size-5" />
                 </>
               )}

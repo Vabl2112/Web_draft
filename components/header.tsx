@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check } from "lucide-react"
+import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check, Briefcase } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -15,6 +15,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+
+type UserRole = "user" | "master"
+
+// Simulated current user - in real app this would come from auth context
+const currentUser = {
+  name: "Алексей",
+  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
+  role: "master" as UserRole, // Change to "user" to test user mode
+}
 
 const navLinks = [
   { href: "/masters", label: "Мастера" },
@@ -192,18 +201,47 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="hidden items-center gap-2 px-2 sm:flex">
-                <Avatar className="size-8">
-                  <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" />
-                  <AvatarFallback>АС</AvatarFallback>
-                </Avatar>
-                <span className="hidden text-sm font-medium lg:inline-block">Алексей</span>
+                <div className="relative">
+                  <Avatar className={cn(
+                    "size-8",
+                    currentUser.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
+                  )}>
+                    <AvatarImage src={currentUser.avatar} />
+                    <AvatarFallback>{currentUser.name.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  {currentUser.role === "master" && (
+                    <div className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white">
+                      <Briefcase className="size-2.5" />
+                    </div>
+                  )}
+                </div>
+                <span className="hidden text-sm font-medium lg:inline-block">{currentUser.name}</span>
                 <ChevronDown className="size-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
+              {currentUser.role === "master" && (
+                <>
+                  <div className="flex items-center gap-2 px-2 py-1.5">
+                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10">
+                      <Briefcase className="mr-1 size-3" />
+                      Мастер
+                    </Badge>
+                  </div>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/profile">Мой профиль</Link>
               </DropdownMenuItem>
+              {currentUser.role === "master" && (
+                <DropdownMenuItem asChild>
+                  <Link href="/settings?section=master-profile">
+                    <Briefcase className="mr-2 size-4" />
+                    Профиль мастера
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/favorites">Избранное</Link>
               </DropdownMenuItem>
@@ -243,12 +281,29 @@ export function Header() {
                 
                 {/* Mobile User Info */}
                 <div className="flex items-center gap-3 border-b border-border p-4">
-                  <Avatar className="size-12">
-                    <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" />
-                    <AvatarFallback>АС</AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className={cn(
+                      "size-12",
+                      currentUser.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
+                    )}>
+                      <AvatarImage src={currentUser.avatar} />
+                      <AvatarFallback>{currentUser.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    {currentUser.role === "master" && (
+                      <div className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white">
+                        <Briefcase className="size-3" />
+                      </div>
+                    )}
+                  </div>
                   <div>
-                    <p className="font-medium">Алексей</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{currentUser.name}</p>
+                      {currentUser.role === "master" && (
+                        <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 text-xs">
+                          Мастер
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{currentCity?.name}</p>
                   </div>
                 </div>
