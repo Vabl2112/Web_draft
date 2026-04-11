@@ -10,6 +10,8 @@ import { ReviewsCard } from "@/components/reviews-card"
 import { CalculatorCard } from "@/components/calculator-card"
 import { DynamicTabs, type TabItem } from "@/components/dynamic-tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { MasterProfileEditor } from "@/components/master-profile-editor"
+import { useAuth } from "@/lib/auth-context"
 import type { ArtistProfile } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -50,7 +52,11 @@ function PortfolioSkeleton() {
 }
 
 export function ArtistProfilePage() {
+  const { user, isAuthenticated } = useAuth()
   const { data, error, isLoading } = useSWR<ArtistProfile>("/api/artist/1", fetcher)
+  
+  // Check if the current user is the owner of this profile (master viewing their own page)
+  const isOwner = isAuthenticated && user?.role === "master"
 
   if (error) {
     return (
@@ -67,6 +73,11 @@ export function ArtistProfilePage() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Profile Section */}
         <section className="border-b border-border pb-8">
+          {isOwner && (
+            <div className="mb-6 flex justify-end">
+              <MasterProfileEditor />
+            </div>
+          )}
           {isLoading ? (
             <ProfileSkeleton />
           ) : data ? (

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check, Briefcase } from "lucide-react"
+import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check, Briefcase, ArrowRight, LogIn } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -15,15 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-
-type UserRole = "user" | "master"
-
-// Simulated current user - in real app this would come from auth context
-const currentUser = {
-  name: "Алексей",
-  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
-  role: "master" as UserRole, // Change to "user" to test user mode
-}
+import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { href: "/masters", label: "Мастера" },
@@ -53,6 +45,7 @@ const messages = [
 ]
 
 export function Header() {
+  const { user, isAuthenticated, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedCity, setSelectedCity] = useState("moscow")
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -108,155 +101,170 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Notifications */}
-          <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative text-muted-foreground">
-                <Bell className="size-5" />
-                {unreadNotifications > 0 && (
-                  <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
-                    {unreadNotifications}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <div className="flex items-center justify-between p-3">
-                <span className="font-semibold">Уведомления</span>
-                <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-muted-foreground">
-                  Прочитать все
-                </Button>
-              </div>
-              <DropdownMenuSeparator />
-              {notifications.map((notification) => (
-                <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
-                  <div className="flex w-full items-start justify-between">
-                    <span className={cn("text-sm font-medium", notification.unread && "text-foreground")}>
-                      {notification.title}
-                    </span>
-                    {notification.unread && <span className="size-2 rounded-full bg-destructive" />}
-                  </div>
-                  <span className="text-sm text-muted-foreground">{notification.message}</span>
-                  <span className="text-xs text-muted-foreground">{notification.time}</span>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <div className="p-2">
-                <Link href="/notifications">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Все уведомления
+          {isAuthenticated && user ? (
+            <>
+              {/* Notifications - Only for authenticated users */}
+              <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+                    <Bell className="size-5" />
+                    {unreadNotifications > 0 && (
+                      <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                        {unreadNotifications}
+                      </Badge>
+                    )}
                   </Button>
-                </Link>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Messages */}
-          <DropdownMenu open={messagesOpen} onOpenChange={setMessagesOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative text-muted-foreground">
-                <MessageSquare className="size-5" />
-                {unreadMessages > 0 && (
-                  <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
-                    {unreadMessages}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <div className="flex items-center justify-between p-3">
-                <span className="font-semibold">Сообщения</span>
-              </div>
-              <DropdownMenuSeparator />
-              {messages.map((msg) => (
-                <DropdownMenuItem key={msg.id} className="flex items-start gap-3 p-3">
-                  <Avatar className="size-10 shrink-0">
-                    <AvatarImage src={msg.avatar} alt={msg.name} />
-                    <AvatarFallback>{msg.name.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className={cn("text-sm font-medium", msg.unread && "text-foreground")}>
-                        {msg.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{msg.time}</span>
-                    </div>
-                    <span className="truncate text-sm text-muted-foreground">{msg.message}</span>
-                  </div>
-                  {msg.unread && <span className="mt-2 size-2 shrink-0 rounded-full bg-destructive" />}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <div className="p-2">
-                <Link href="/messages">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Все сообщения
-                  </Button>
-                </Link>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {/* User Avatar - Desktop */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="hidden items-center gap-2 px-2 sm:flex">
-                <div className="relative">
-                  <Avatar className={cn(
-                    "size-8",
-                    currentUser.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
-                  )}>
-                    <AvatarImage src={currentUser.avatar} />
-                    <AvatarFallback>{currentUser.name.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  {currentUser.role === "master" && (
-                    <div className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white">
-                      <Briefcase className="size-2.5" />
-                    </div>
-                  )}
-                </div>
-                <span className="hidden text-sm font-medium lg:inline-block">{currentUser.name}</span>
-                <ChevronDown className="size-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {currentUser.role === "master" && (
-                <>
-                  <div className="flex items-center gap-2 px-2 py-1.5">
-                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10">
-                      <Briefcase className="mr-1 size-3" />
-                      Мастер
-                    </Badge>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <div className="flex items-center justify-between p-3">
+                    <span className="font-semibold">Уведомления</span>
+                    <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-muted-foreground">
+                      Прочитать все
+                    </Button>
                   </div>
                   <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem asChild>
-                <Link href="/profile">Мой профиль</Link>
-              </DropdownMenuItem>
-              {currentUser.role === "master" && (
-                <DropdownMenuItem asChild>
-                  <Link href="/settings?section=master-profile">
-                    <Briefcase className="mr-2 size-4" />
-                    Профиль мастера
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem asChild>
-                <Link href="/favorites">Избранное</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/appointments">Мои записи</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings">Настройки</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="text-destructive">
-                <Link href="/login">Выйти</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  {notifications.map((notification) => (
+                    <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
+                      <div className="flex w-full items-start justify-between">
+                        <span className={cn("text-sm font-medium", notification.unread && "text-foreground")}>
+                          {notification.title}
+                        </span>
+                        {notification.unread && <span className="size-2 rounded-full bg-destructive" />}
+                      </div>
+                      <span className="text-sm text-muted-foreground">{notification.message}</span>
+                      <span className="text-xs text-muted-foreground">{notification.time}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <Link href="/notifications">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Все уведомления
+                      </Button>
+                    </Link>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Messages - Only for authenticated users */}
+              <DropdownMenu open={messagesOpen} onOpenChange={setMessagesOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+                    <MessageSquare className="size-5" />
+                    {unreadMessages > 0 && (
+                      <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                        {unreadMessages}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <div className="flex items-center justify-between p-3">
+                    <span className="font-semibold">Сообщения</span>
+                  </div>
+                  <DropdownMenuSeparator />
+                  {messages.map((msg) => (
+                    <DropdownMenuItem key={msg.id} className="flex items-start gap-3 p-3">
+                      <Avatar className="size-10 shrink-0">
+                        <AvatarImage src={msg.avatar} alt={msg.name} />
+                        <AvatarFallback>{msg.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+                        <div className="flex items-center justify-between">
+                          <span className={cn("text-sm font-medium", msg.unread && "text-foreground")}>
+                            {msg.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{msg.time}</span>
+                        </div>
+                        <span className="truncate text-sm text-muted-foreground">{msg.message}</span>
+                      </div>
+                      {msg.unread && <span className="mt-2 size-2 shrink-0 rounded-full bg-destructive" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <Link href="/messages">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Все сообщения
+                      </Button>
+                    </Link>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* User Avatar - Desktop */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="hidden items-center gap-2 px-2 sm:flex">
+                    <div className="relative">
+                      <Avatar className={cn(
+                        "size-8",
+                        user.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
+                      )}>
+                        <AvatarImage src={user.avatar} />
+                        <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      {user.role === "master" && (
+                        <div className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white">
+                          <Briefcase className="size-2.5" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="hidden text-sm font-medium lg:inline-block">{user.name}</span>
+                    <ChevronDown className="size-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {user.role === "master" && (
+                    <>
+                      <div className="flex items-center gap-2 px-2 py-1.5">
+                        <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10">
+                          <Briefcase className="mr-1 size-3" />
+                          Мастер
+                        </Badge>
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link href="/">Мой профиль</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favorites">Избранное</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/appointments">Мои записи</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">Настройки</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-destructive cursor-pointer"
+                    onClick={() => logout()}
+                  >
+                    Выйти
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            /* Auth buttons for unauthenticated users */
+            <div className="hidden items-center gap-2 sm:flex">
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <LogIn className="size-4" />
+                  Войти
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm" className="gap-1">
+                  Регистрация
+                  <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -279,34 +287,55 @@ export function Header() {
                   </div>
                 </SheetHeader>
                 
-                {/* Mobile User Info */}
-                <div className="flex items-center gap-3 border-b border-border p-4">
-                  <div className="relative">
-                    <Avatar className={cn(
-                      "size-12",
-                      currentUser.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
-                    )}>
-                      <AvatarImage src={currentUser.avatar} />
-                      <AvatarFallback>{currentUser.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    {currentUser.role === "master" && (
-                      <div className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white">
-                        <Briefcase className="size-3" />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{currentUser.name}</p>
-                      {currentUser.role === "master" && (
-                        <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 text-xs">
-                          Мастер
-                        </Badge>
+                {/* Mobile User Info or Auth Buttons */}
+                {isAuthenticated && user ? (
+                  <div className="flex items-center gap-3 border-b border-border p-4">
+                    <div className="relative">
+                      <Avatar className={cn(
+                        "size-12",
+                        user.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
+                      )}>
+                        <AvatarImage src={user.avatar} />
+                        <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      {user.role === "master" && (
+                        <div className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white">
+                          <Briefcase className="size-3" />
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{currentCity?.name}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{user.name}</p>
+                        {user.role === "master" && (
+                          <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 text-xs">
+                            Мастер
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{currentCity?.name}</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col gap-2 border-b border-border p-4">
+                    <SheetClose asChild>
+                      <Link href="/login">
+                        <Button variant="outline" className="w-full gap-2">
+                          <LogIn className="size-4" />
+                          Войти
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link href="/register">
+                        <Button className="w-full gap-2">
+                          Регистрация
+                          <ArrowRight className="size-4" />
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                  </div>
+                )}
 
                 {/* Mobile Location Selector */}
                 <div className="border-b border-border p-4">
@@ -340,27 +369,40 @@ export function Header() {
                   ))}
                 </nav>
 
-                {/* Mobile Actions */}
-                <div className="mt-auto border-t border-border p-4">
-                  <div className="flex items-center gap-3">
-                    <Button variant="outline" size="icon" className="relative">
-                      <Bell className="size-5" />
-                      {unreadNotifications > 0 && (
-                        <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
-                          {unreadNotifications}
-                        </Badge>
-                      )}
-                    </Button>
-                    <Button variant="outline" size="icon" className="relative">
-                      <MessageSquare className="size-5" />
-                      {unreadMessages > 0 && (
-                        <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
-                          {unreadMessages}
-                        </Badge>
-                      )}
-                    </Button>
+                {/* Mobile Actions - Only for authenticated users */}
+                {isAuthenticated && user && (
+                  <div className="mt-auto border-t border-border p-4">
+                    <div className="flex items-center gap-3">
+                      <Button variant="outline" size="icon" className="relative">
+                        <Bell className="size-5" />
+                        {unreadNotifications > 0 && (
+                          <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                            {unreadNotifications}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button variant="outline" size="icon" className="relative">
+                        <MessageSquare className="size-5" />
+                        {unreadMessages > 0 && (
+                          <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                            {unreadMessages}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="ml-auto text-destructive"
+                        onClick={() => {
+                          logout()
+                          setIsOpen(false)
+                        }}
+                      >
+                        Выйти
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>

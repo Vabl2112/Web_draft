@@ -83,7 +83,7 @@ const userProfile: UserProfile = {
   showReviews: true,
 }
 
-type SettingsSection = "profile" | "notifications" | "privacy" | "appearance" | "language" | "master-profile"
+type SettingsSection = "profile" | "notifications" | "privacy" | "appearance" | "language"
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
@@ -138,23 +138,13 @@ export function SettingsPage() {
     setTags(tags.filter(tag => tag !== tagToRemove))
   }
 
-  const baseMenuItems = [
+  const menuItems = [
     { id: "profile" as const, label: "Профиль", icon: User },
     { id: "notifications" as const, label: "Уведомления", icon: Bell },
     { id: "privacy" as const, label: "Приватность", icon: Shield },
     { id: "appearance" as const, label: "Внешний вид", icon: Palette },
     { id: "language" as const, label: "Язык и регион", icon: Globe },
   ]
-  
-  const masterMenuItem = { 
-    id: "master-profile" as const, 
-    label: "Профиль мастера", 
-    icon: Briefcase 
-  }
-  
-  const menuItems = userProfile.role === "master" 
-    ? [baseMenuItems[0], masterMenuItem, ...baseMenuItems.slice(1)]
-    : baseMenuItems
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
