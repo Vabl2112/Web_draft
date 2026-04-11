@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Star, ShoppingCart } from "lucide-react"
+import { Star, ShoppingCart, Heart } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface ProductCardProps {
   product: {
@@ -28,12 +30,13 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const [isLiked, setIsLiked] = useState(false)
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-lg">
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg">
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <Image
@@ -43,15 +46,23 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {discount && (
-          <Badge className="absolute left-3 top-3 bg-red-500 text-white">
+          <Badge className="absolute left-3 top-3 bg-destructive text-destructive-foreground">
             -{discount}%
           </Badge>
         )}
         {!product.inStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <Badge variant="secondary" className="text-base">Нет в наличии</Badge>
           </div>
         )}
+        <Button
+          variant="secondary"
+          size="icon"
+          className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={() => setIsLiked(!isLiked)}
+        >
+          <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+        </Button>
       </div>
 
       {/* Content */}
@@ -70,11 +81,11 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-xl font-bold text-foreground">
-            {product.price.toLocaleString("ru-RU")} руб.
+            {product.price.toLocaleString("ru-RU")} &#8381;
           </span>
           {product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
-              {product.originalPrice.toLocaleString("ru-RU")} руб.
+              {product.originalPrice.toLocaleString("ru-RU")} &#8381;
             </span>
           )}
         </div>
