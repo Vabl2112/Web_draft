@@ -2,6 +2,7 @@
 
 import useSWR from "swr"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { ProfileCard } from "@/components/profile-card"
 import { ServicesCard } from "@/components/services-card"
 import { PortfolioMasonry } from "@/components/portfolio-masonry"
@@ -111,6 +112,8 @@ export function ArtistProfilePage() {
           })()}
         </section>
       </main>
+      
+      <Footer />
     </div>
   )
 }

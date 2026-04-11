@@ -17,6 +17,7 @@ import {
   Filter
 } from "lucide-react"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -598,6 +599,8 @@ export function ProductsPage() {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   )
 }
