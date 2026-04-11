@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'EGG - Тату-мастера',
-  description: 'Найдите лучших тату-мастеров в вашем городе',
+  title: 'EGG - Тату-студия',
+  description: 'Лучшие тату-мастера, услуги и товары для ухода за татуировками',
   generator: 'v0.app',
   icons: {
     icon: [

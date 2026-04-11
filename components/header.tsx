@@ -2,10 +2,19 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X } from "lucide-react"
+import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 const navLinks = [
   { href: "/masters", label: "Мастера" },
@@ -14,8 +23,35 @@ const navLinks = [
   { href: "/products", label: "Товары" },
 ]
 
+const cities = [
+  { id: "moscow", name: "Москва" },
+  { id: "spb", name: "Санкт-Петербург" },
+  { id: "kazan", name: "Казань" },
+  { id: "novosibirsk", name: "Новосибирск" },
+  { id: "ekaterinburg", name: "Екатеринбург" },
+]
+
+const notifications = [
+  { id: 1, title: "Новый отзыв", message: "Алексей оставил отзыв о вашей работе", time: "5 мин назад", unread: true },
+  { id: 2, title: "Запись подтверждена", message: "Сеанс на 15 апреля в 14:00", time: "1 час назад", unread: true },
+  { id: 3, title: "Новое сообщение", message: "Мария: Здравствуйте, хотела уточнить...", time: "3 часа назад", unread: false },
+]
+
+const messages = [
+  { id: 1, name: "Мария Иванова", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face", message: "Здравствуйте, хотела уточнить...", time: "3 часа назад", unread: true },
+  { id: 2, name: "Дмитрий Козлов", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face", message: "Спасибо за работу!", time: "Вчера", unread: false },
+  { id: 3, name: "Анна Петрова", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", message: "Когда можно записаться?", time: "2 дня назад", unread: false },
+]
+
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [selectedCity, setSelectedCity] = useState("moscow")
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [messagesOpen, setMessagesOpen] = useState(false)
+
+  const currentCity = cities.find(c => c.id === selectedCity)
+  const unreadNotifications = notifications.filter(n => n.unread).length
+  const unreadMessages = messages.filter(m => m.unread).length
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,10 +61,28 @@ export function Header() {
             <span className="text-2xl font-bold text-amber-500">EGG</span>
           </Link>
           
-          <Button variant="outline" size="sm" className="hidden gap-2 rounded-full sm:flex">
-            <MapPin className="size-4" />
-            <span>Москва</span>
-          </Button>
+          {/* Location Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="hidden gap-2 rounded-full sm:flex">
+                <MapPin className="size-4" />
+                <span>{currentCity?.name}</span>
+                <ChevronDown className="size-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {cities.map((city) => (
+                <DropdownMenuItem
+                  key={city.id}
+                  onClick={() => setSelectedCity(city.id)}
+                  className="flex items-center justify-between"
+                >
+                  {city.name}
+                  {selectedCity === city.id && <Check className="size-4" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Desktop Navigation */}
@@ -44,23 +98,127 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="icon" className="hidden text-muted-foreground sm:flex">
-            <Bell className="size-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="hidden text-muted-foreground sm:flex">
-            <MessageSquare className="size-5" />
-          </Button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Notifications */}
+          <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+                <Bell className="size-5" />
+                {unreadNotifications > 0 && (
+                  <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                    {unreadNotifications}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <div className="flex items-center justify-between p-3">
+                <span className="font-semibold">Уведомления</span>
+                <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-muted-foreground">
+                  Прочитать все
+                </Button>
+              </div>
+              <DropdownMenuSeparator />
+              {notifications.map((notification) => (
+                <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
+                  <div className="flex w-full items-start justify-between">
+                    <span className={cn("text-sm font-medium", notification.unread && "text-foreground")}>
+                      {notification.title}
+                    </span>
+                    {notification.unread && <span className="size-2 rounded-full bg-destructive" />}
+                  </div>
+                  <span className="text-sm text-muted-foreground">{notification.message}</span>
+                  <span className="text-xs text-muted-foreground">{notification.time}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="p-2">
+                <Link href="/notifications">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Все уведомления
+                  </Button>
+                </Link>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Messages */}
+          <DropdownMenu open={messagesOpen} onOpenChange={setMessagesOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+                <MessageSquare className="size-5" />
+                {unreadMessages > 0 && (
+                  <Badge className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                    {unreadMessages}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <div className="flex items-center justify-between p-3">
+                <span className="font-semibold">Сообщения</span>
+              </div>
+              <DropdownMenuSeparator />
+              {messages.map((msg) => (
+                <DropdownMenuItem key={msg.id} className="flex items-start gap-3 p-3">
+                  <Avatar className="size-10 shrink-0">
+                    <AvatarImage src={msg.avatar} alt={msg.name} />
+                    <AvatarFallback>{msg.name.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className={cn("text-sm font-medium", msg.unread && "text-foreground")}>
+                        {msg.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{msg.time}</span>
+                    </div>
+                    <span className="truncate text-sm text-muted-foreground">{msg.message}</span>
+                  </div>
+                  {msg.unread && <span className="mt-2 size-2 shrink-0 rounded-full bg-destructive" />}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="p-2">
+                <Link href="/messages">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Все сообщения
+                  </Button>
+                </Link>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           {/* User Avatar - Desktop */}
-          <div className="hidden items-center gap-2 sm:flex">
-            <Avatar className="size-9">
-              <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" />
-              <AvatarFallback>АС</AvatarFallback>
-            </Avatar>
-            <span className="hidden text-sm font-medium lg:inline-block">Алексей</span>
-            <ChevronDown className="size-4 text-muted-foreground" />
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="hidden items-center gap-2 px-2 sm:flex">
+                <Avatar className="size-8">
+                  <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face" />
+                  <AvatarFallback>АС</AvatarFallback>
+                </Avatar>
+                <span className="hidden text-sm font-medium lg:inline-block">Алексей</span>
+                <ChevronDown className="size-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">Мой профиль</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/favorites">Избранное</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/appointments">Мои записи</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Настройки</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="text-destructive">
+                <Link href="/login">Выйти</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -72,14 +230,16 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-xs p-0">
               <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between border-b border-border p-4">
-                  <span className="text-lg font-semibold">Меню</span>
-                  <SheetClose asChild>
-                    <Button variant="ghost" size="icon">
-                      <X className="size-5" />
-                    </Button>
-                  </SheetClose>
-                </div>
+                <SheetHeader className="border-b border-border p-4">
+                  <div className="flex items-center justify-between">
+                    <SheetTitle>Меню</SheetTitle>
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon">
+                        <X className="size-5" />
+                      </Button>
+                    </SheetClose>
+                  </div>
+                </SheetHeader>
                 
                 {/* Mobile User Info */}
                 <div className="flex items-center gap-3 border-b border-border p-4">
@@ -89,7 +249,25 @@ export function Header() {
                   </Avatar>
                   <div>
                     <p className="font-medium">Алексей</p>
-                    <p className="text-sm text-muted-foreground">Москва</p>
+                    <p className="text-sm text-muted-foreground">{currentCity?.name}</p>
+                  </div>
+                </div>
+
+                {/* Mobile Location Selector */}
+                <div className="border-b border-border p-4">
+                  <p className="mb-2 text-sm font-medium text-muted-foreground">Город</p>
+                  <div className="flex flex-wrap gap-2">
+                    {cities.map((city) => (
+                      <Button
+                        key={city.id}
+                        variant={selectedCity === city.id ? "default" : "outline"}
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => setSelectedCity(city.id)}
+                      >
+                        {city.name}
+                      </Button>
+                    ))}
                   </div>
                 </div>
 
@@ -109,12 +287,22 @@ export function Header() {
 
                 {/* Mobile Actions */}
                 <div className="mt-auto border-t border-border p-4">
-                  <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon">
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" size="icon" className="relative">
                       <Bell className="size-5" />
+                      {unreadNotifications > 0 && (
+                        <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                          {unreadNotifications}
+                        </Badge>
+                      )}
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" className="relative">
                       <MessageSquare className="size-5" />
+                      {unreadMessages > 0 && (
+                        <Badge className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-destructive p-0 text-xs text-destructive-foreground">
+                          {unreadMessages}
+                        </Badge>
+                      )}
                     </Button>
                   </div>
                 </div>
