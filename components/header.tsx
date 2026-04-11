@@ -214,7 +214,9 @@ export function Header() {
                 <Link href="/settings">Настройки</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">Выйти</DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-destructive">
+                <Link href="/login">Выйти</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
