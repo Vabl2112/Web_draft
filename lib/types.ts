@@ -21,13 +21,33 @@ export interface Service {
   title: string
   description: string
   price: string
+  images?: string[] // Optional photos for services
 }
 
 export interface PortfolioItem {
   id: string
-  imageUrl: string
+  images: string[] // Support multiple images per portfolio item
   title: string
+  description?: string
   height: "small" | "medium" | "large"
+}
+
+export interface Product {
+  id: string
+  title: string
+  description: string
+  price: number
+  originalPrice: number | null
+  images: string[] // Support multiple images per product
+  category: string
+  inStock: boolean
+  rating: number
+  reviewsCount: number
+  seller: {
+    id: string
+    name: string
+    avatar: string
+  }
 }
 
 export interface Review {
@@ -115,8 +135,19 @@ export interface MasterProfileConfig {
   sections: {
     showPortfolio: boolean
     showServices: boolean
+    showProducts: boolean
     showCalculator: boolean
     showReviews: boolean
   }
-  calculatorConfig: MasterCalculatorConfig
+  calculators: MasterCalculatorConfig[] // Support multiple calculators
+}
+
+// Extended Artist Profile with products
+export interface ExtendedArtistProfile {
+  artist: Artist
+  services: Service[]
+  products: Product[]
+  portfolio: PortfolioItem[]
+  reviews: Review[]
+  calculators: MasterCalculatorConfig[]
 }
