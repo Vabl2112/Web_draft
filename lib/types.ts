@@ -72,7 +72,7 @@ export interface GalleryImage {
 export interface CalculatorParameter {
   id: string
   label: string
-  type: "slider" | "radio" | "select"
+  type: "slider" | "radio" | "select" | "number"
   defaultValue: string | number
   options?: { value: string; label: string }[]
   min?: number
@@ -86,4 +86,37 @@ export interface CalculatorConfig {
   formula: string
   parameters: CalculatorParameter[]
   currency: string
+}
+
+// Extended calculator config for master profile editor
+export interface CalculatorVariable {
+  id: string
+  name: string // Variable name like 'a', 'b', 'c'
+  label: string // Display label for users
+  type: "slider" | "number" | "select"
+  defaultValue: number
+  min?: number
+  max?: number
+  step?: number
+  unit?: string
+  options?: { value: number; label: string }[]
+}
+
+export interface MasterCalculatorConfig {
+  variables: CalculatorVariable[]
+  formula: string
+  currency: string
+}
+
+// Master profile configuration
+export interface MasterProfileConfig {
+  bio: string
+  tags: string[]
+  sections: {
+    showPortfolio: boolean
+    showServices: boolean
+    showCalculator: boolean
+    showReviews: boolean
+  }
+  calculatorConfig: MasterCalculatorConfig
 }

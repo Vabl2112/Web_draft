@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { 
   User, 
   Bell, 
@@ -17,11 +18,17 @@ import {
   Moon,
   Sun,
   Monitor,
-  Camera
+  Camera,
+  Edit3,
+  ImageIcon,
+  Tags,
+  FileText,
+  Briefcase
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
@@ -45,16 +52,42 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { cn } from "@/lib/utils"
 
-const userProfile = {
+type UserRole = "user" | "master"
+
+interface UserProfile {
+  name: string
+  email: string
+  phone: string
+  avatar: string
+  role: UserRole
+  // Master-specific fields
+  bio?: string
+  tags?: string[]
+  showPortfolio?: boolean
+  showServices?: boolean
+  showCalculator?: boolean
+  showReviews?: boolean
+}
+
+const userProfile: UserProfile = {
   name: "Алексей Смирнов",
   email: "alexey@example.com",
   phone: "+7 (999) 123-45-67",
   avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
+  role: "master", // Change to "user" to test user mode
+  bio: "Профессиональный тату-мастер с 10-летним опытом. Специализируюсь на японской традиционной татуировке и неотраде.",
+  tags: ["Японский стиль", "Неотрад", "Блэкворк", "Орнаментал"],
+  showPortfolio: true,
+  showServices: true,
+  showCalculator: true,
+  showReviews: true,
 }
 
 type SettingsSection = "profile" | "notifications" | "privacy" | "appearance" | "language"
 
 export function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [activeSection, setActiveSection] = useState<SettingsSection>("profile")
   const [showPassword, setShowPassword] = useState(false)
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
@@ -63,6 +96,15 @@ export function SettingsPage() {
   const [name, setName] = useState(userProfile.name)
   const [email, setEmail] = useState(userProfile.email)
   const [phone, setPhone] = useState(userProfile.phone)
+  
+  // Master profile states
+  const [bio, setBio] = useState(userProfile.bio || "")
+  const [tags, setTags] = useState<string[]>(userProfile.tags || [])
+  const [newTag, setNewTag] = useState("")
+  const [showPortfolio, setShowPortfolio] = useState(userProfile.showPortfolio ?? true)
+  const [showServices, setShowServices] = useState(userProfile.showServices ?? true)
+  const [showCalculator, setShowCalculator] = useState(userProfile.showCalculator ?? true)
+  const [showReviews, setShowReviews] = useState(userProfile.showReviews ?? true)
   
   // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -77,9 +119,24 @@ export function SettingsPage() {
   const [showOnlineStatus, setShowOnlineStatus] = useState(true)
   const [showLastSeen, setShowLastSeen] = useState(false)
   
-  // Appearance settings
-  const [theme, setTheme] = useState("system")
+  // Language settings
   const [language, setLanguage] = useState("ru")
+  
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()])
+      setNewTag("")
+    }
+  }
+  
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove))
+  }
 
   const menuItems = [
     { id: "profile" as const, label: "Профиль", icon: User },
@@ -429,7 +486,7 @@ export function SettingsPage() {
                             onClick={() => setTheme(option.id)}
                             className={cn(
                               "flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors",
-                              theme === option.id
+                              mounted && theme === option.id
                                 ? "border-foreground bg-muted"
                                 : "border-border hover:border-foreground/50"
                             )}
@@ -439,6 +496,168 @@ export function SettingsPage() {
                           </button>
                         ))}
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Master Profile Section - Only for masters */}
+              {activeSection === "master-profile" && userProfile.role === "master" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Профиль мастера</CardTitle>
+                    <CardDescription>
+                      Настройте отображение вашего профиля для клиентов
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Profile Photo */}
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2">
+                        <ImageIcon className="size-4" />
+                        Фото профиля
+                      </Label>
+                      <div className="flex items-center gap-4">
+                        <Avatar className="size-24">
+                          <AvatarImage src={userProfile.avatar} alt={name} />
+                          <AvatarFallback>{name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col gap-2">
+                          <Button variant="outline" size="sm">
+                            <Camera className="mr-2 size-4" />
+                            Загрузить фото
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            JPG, PNG до 5 МБ
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Bio */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <FileText className="size-4" />
+                        Описание
+                      </Label>
+                      <textarea
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Расскажите о себе и своей работе..."
+                        className="min-h-24 w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        maxLength={500}
+                      />
+                      <p className="text-xs text-muted-foreground text-right">
+                        {bio.length}/500 символов
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    {/* Tags */}
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2">
+                        <Tags className="size-4" />
+                        Теги и стили
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm"
+                          >
+                            {tag}
+                            <button
+                              onClick={() => handleRemoveTag(tag)}
+                              className="ml-1 rounded-full hover:bg-muted-foreground/20"
+                            >
+                              <span className="sr-only">Удалить тег</span>
+                              <svg className="size-3" viewBox="0 0 12 12" fill="none">
+                                <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                              </svg>
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          placeholder="Добавить тег..."
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                        />
+                        <Button variant="outline" onClick={handleAddTag}>
+                          Добавить
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Section visibility */}
+                    <div className="space-y-4">
+                      <Label className="flex items-center gap-2">
+                        <Edit3 className="size-4" />
+                        Отображаемые разделы
+                      </Label>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Портфолио</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Показывать галерею работ
+                          </p>
+                        </div>
+                        <Switch
+                          checked={showPortfolio}
+                          onCheckedChange={setShowPortfolio}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Услуги и товары</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Показывать список услуг и товаров
+                          </p>
+                        </div>
+                        <Switch
+                          checked={showServices}
+                          onCheckedChange={setShowServices}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Калькулятор цен</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Показывать калькулятор стоимости
+                          </p>
+                        </div>
+                        <Switch
+                          checked={showCalculator}
+                          onCheckedChange={setShowCalculator}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label>Отзывы</Label>
+                          <p className="text-sm text-muted-foreground">
+                            Показывать отзывы клиентов
+                          </p>
+                        </div>
+                        <Switch
+                          checked={showReviews}
+                          onCheckedChange={setShowReviews}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button>Сохранить изменения</Button>
                     </div>
                   </CardContent>
                 </Card>
