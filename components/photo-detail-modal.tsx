@@ -23,6 +23,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -134,19 +135,22 @@ export function PhotoDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-5xl gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent className="h-[90vh] max-h-[90vh] max-w-6xl gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogTitle className="sr-only">{photo.title}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {photo.description || `Фото работы от ${photo.author}`}
+        </DialogDescription>
         
-        <div className="flex h-full max-h-[90vh] flex-col md:flex-row">
+        <div className="flex h-full flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative flex min-h-[300px] flex-1 items-center justify-center bg-black md:min-h-0">
+          <div className="relative flex h-[50vh] flex-1 items-center justify-center bg-black md:h-full">
             <div className="relative h-full w-full">
               <Image
                 src={currentImage}
                 alt={photo.title}
                 fill
                 className="object-contain"
-                sizes="(max-width: 768px) 100vw, 60vw"
+                sizes="(max-width: 768px) 100vw, 65vw"
                 priority
               />
             </div>
@@ -239,7 +243,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex w-full flex-col border-l border-border bg-background md:w-96">
+          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full md:w-[380px] md:min-w-[380px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 
