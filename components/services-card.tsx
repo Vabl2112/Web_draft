@@ -1,9 +1,27 @@
 "use client"
 
-import { Pencil, Clock, RefreshCw, Star, Heart, Check, Edit2, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { Pencil, Clock, RefreshCw, Star, Heart, Check, MoreVertical, Edit2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ImageCarousel } from "@/components/image-carousel"
 import { ServiceEditor } from "@/components/service-editor"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { Service } from "@/lib/types"
 
 interface ServicesCardProps {
@@ -23,6 +41,23 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 }
 
 export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCardProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null)
+  const [editingService, setEditingService] = useState<Service | null>(null)
+
+  const handleDeleteClick = (id: string) => {
+    setServiceToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (serviceToDelete) {
+      onDelete?.(serviceToDelete)
+    }
+    setDeleteDialogOpen(false)
+    setServiceToDelete(null)
+  }
+
   if (services.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-5">
@@ -79,40 +114,80 @@ export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCa
                 </p>
               </div>
               
-              {/* Edit/Delete buttons for owner */}
+              {/* Actions menu for owner */}
               {isOwner && (
-                <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <ServiceEditor
-                    mode="edit"
-                    initialData={{
-                      ...service,
-                      images: service.images?.map((url, i) => ({ id: String(i), url })) || []
-                    }}
-                    onSave={(data) => onEdit?.({ 
-                      ...service, 
-                      ...data, 
-                      images: data.images?.map(img => img.url)
-                    })}
-                    trigger={
-                      <Button variant="ghost" size="icon" className="size-7">
-                        <Edit2 className="size-3.5" />
-                      </Button>
-                    }
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="size-7 text-destructive"
-                    onClick={() => onDelete?.(service.id)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-2 top-2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setEditingService(service)}>
+                      <Edit2 className="mr-2 size-4" />
+                      Редактировать
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => handleDeleteClick(service.id)}
+                    >
+                      <Trash2 className="mr-2 size-4" />
+                      Удалить
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           )
         })}
       </div>
+
+      {/* Edit dialog */}
+      <ServiceEditor
+        mode="edit"
+        open={!!editingService}
+        onOpenChange={(open) => !open && setEditingService(null)}
+        initialData={editingService ? {
+          ...editingService,
+          images: editingService.images?.map((url, i) => ({ id: String(i), url })) || []
+        } : undefined}
+        onSave={(data) => {
+          if (editingService) {
+            onEdit?.({ 
+              ...editingService, 
+              ...data, 
+              images: data.images?.map(img => img.url)
+            })
+          }
+          setEditingService(null)
+        }}
+      />
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить услугу?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Услуга будет удалена из вашего профиля.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

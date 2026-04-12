@@ -2,10 +2,27 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, MessageCircle, MoreVertical, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
 import { PortfolioItemEditor } from "@/components/portfolio-item-editor"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { PortfolioItem } from "@/lib/types"
 
 interface PortfolioMasonryProps {
@@ -63,6 +80,23 @@ export function PortfolioMasonry({
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const [currentImageIndices, setCurrentImageIndices] = useState<Record<string, number>>({})
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null)
+  const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null)
+
+  const handleDeleteClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setItemToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      onDelete?.(itemToDelete)
+    }
+    setDeleteDialogOpen(false)
+    setItemToDelete(null)
+  }
 
   const getHeightClass = (height: PortfolioItem["height"]) => {
     switch (height) {
@@ -229,41 +263,37 @@ export function PortfolioMasonry({
                     <span className="text-sm font-medium text-white">{item.title}</span>
                   </div>
                   
-                  {/* Edit/Delete buttons for owner */}
+                  {/* Actions menu for owner */}
                   {isOwner && (
-                    <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 z-10">
-                      <PortfolioItemEditor
-                        mode="edit"
-                        initialData={{
-                          id: item.id,
-                          title: item.title,
-                          description: item.description,
-                          images: images.map((url, i) => ({ id: String(i), url }))
-                        }}
-                        onSave={(data) => onEdit?.({ 
-                          ...item,
-                          title: data.title,
-                          description: data.description,
-                          images: data.images.map(img => img.url)
-                        })}
-                        trigger={
-                          <Button variant="secondary" size="icon" className="size-7">
-                            <Edit2 className="size-3.5" />
-                          </Button>
-                        }
-                      />
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="size-7"
-                        onClick={(e) => {
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="secondary" 
+                          size="icon" 
+                          className="absolute right-2 top-2 size-8 opacity-0 transition-opacity group-hover:opacity-100 z-10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation()
-                          onDelete?.(item.id)
-                        }}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
+                          setEditingItem(item)
+                        }}>
+                          <Edit2 className="mr-2 size-4" />
+                          Редактировать
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive"
+                          onClick={(e) => handleDeleteClick(item.id, e)}
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Удалить
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               )
@@ -284,6 +314,51 @@ export function PortfolioMasonry({
         hasPrevious={selectedIndex > 0}
         hasNext={selectedIndex < items.length - 1}
       />
+
+      {/* Edit dialog */}
+      {editingItem && (
+        <PortfolioItemEditor
+          mode="edit"
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+          initialData={{
+            id: editingItem.id,
+            title: editingItem.title,
+            description: editingItem.description,
+            images: getImages(editingItem).map((url, i) => ({ id: String(i), url }))
+          }}
+          onSave={(data) => {
+            onEdit?.({ 
+              ...editingItem,
+              title: data.title,
+              description: data.description,
+              images: data.images.map(img => img.url)
+            })
+            setEditingItem(null)
+          }}
+        />
+      )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить работу?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Работа будет удалена из вашего портфолио.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

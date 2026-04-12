@@ -24,22 +24,41 @@ const mockArtistData: ArtistProfile = {
       id: "1",
       icon: "pencil",
       title: "Разработка эскиза",
-      description: "Индивидуальный подход",
-      price: "от 3000 ₽"
+      description: "Индивидуальный подход к созданию уникального дизайна",
+      price: "от 3000 ₽",
+      images: [
+        "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=400&h=400&fit=crop"
+      ]
     },
     {
       id: "2", 
       icon: "clock",
       title: "Сеанс тату (3 часа)",
-      description: "Стерильные материалы",
-      price: "15000 ₽"
+      description: "Стерильные материалы и комфортная атмосфера",
+      price: "15000 ₽",
+      images: [
+        "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1590246815117-0ec27ac9bc95?w=400&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=400&h=400&fit=crop"
+      ]
     },
     {
       id: "3",
       icon: "refresh",
       title: "Перекрытие/Коррекция",
-      description: "Сложные случаи",
+      description: "Работа со сложными случаями, перекрытие старых работ",
       price: "по договоренности"
+    },
+    {
+      id: "4",
+      icon: "star",
+      title: "VIP сеанс (5 часов)",
+      description: "Расширенный сеанс для крупных работ с перерывами",
+      price: "25000 ₽",
+      images: [
+        "https://images.unsplash.com/photo-1475180429745-21de9a24a9fb?w=400&h=400&fit=crop"
+      ]
     }
   ],
   portfolio: [
