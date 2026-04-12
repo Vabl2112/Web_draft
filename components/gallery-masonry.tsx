@@ -137,10 +137,18 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
             {column.map((image) => {
               const currentFlatIndex = flatIndex++
               return (
-                <button
+                <div
                   key={image.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleImageClick(image, images.findIndex(img => img.id === image.id))}
-                  className={`group relative overflow-hidden rounded-xl ${getHeightClass(image.height)} focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleImageClick(image, images.findIndex(img => img.id === image.id))
+                    }
+                  }}
+                  className={`group relative cursor-pointer overflow-hidden rounded-xl ${getHeightClass(image.height)} focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2`}
                 >
                   <Image
                     src={image.imageUrl}
@@ -156,7 +164,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                     variant="secondary"
                     size="icon"
                     className={cn(
-                      "absolute right-3 top-3 transition-all duration-200",
+                      "absolute right-3 top-3 z-10 transition-all duration-200",
                       likedImages.has(image.id) 
                         ? "opacity-100" 
                         : "opacity-0 group-hover:opacity-100"
@@ -172,7 +180,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                   </Button>
                   
                   {/* Hover overlay with stats */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
                     <div className="flex items-center gap-1 text-white">
                       <Heart className="size-6 fill-white" />
                       <span className="font-semibold">{Math.floor(Math.random() * 500) + 50}</span>
@@ -183,7 +191,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                     </div>
                   </div>
                   
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0">
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0 pointer-events-none">
                     <div className="flex items-center gap-2">
                       <Avatar className="size-8 border-2 border-white">
                         <AvatarImage src={image.authorAvatar} />
@@ -196,7 +204,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                       </span>
                     </div>
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>
