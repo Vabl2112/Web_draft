@@ -1,21 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import useSWR from "swr"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { Header } from "@/components/header"
 import { MasterCard } from "@/components/master-card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -23,36 +15,104 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { SmartFiltersDesktop, SmartFiltersMobile, ActiveFiltersBadges } from "@/components/smart-filters"
+import { mastersFiltersConfig } from "@/lib/filters-config"
+import type { ActiveFilters, FiltersConfig } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
-const styleFilters = [
-  "Все стили",
-  "Реализм",
-  "Графика",
-  "Блэкворк",
-  "Традишнл",
-  "Акварель",
-  "Минимализм",
-  "Дотворк",
-  "Геометрия",
-]
 
 export function MastersPage() {
   const { data, isLoading } = useSWR("/api/masters", fetcher)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedStyle, setSelectedStyle] = useState("Все стили")
   const [sortBy, setSortBy] = useState("rating")
-
-  const filteredMasters = data?.masters?.filter((master: { name: string; styles: string[] }) => {
-    const matchesSearch = master.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStyle = selectedStyle === "Все стили" || master.styles.includes(selectedStyle)
-    return matchesSearch && matchesStyle
-  })?.sort((a: { rating: number; reviewsCount: number }, b: { rating: number; reviewsCount: number }) => {
-    if (sortBy === "rating") return b.rating - a.rating
-    if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount
-    return 0
+  const [filtersConfig, setFiltersConfig] = useState<FiltersConfig | null>(null)
+  const [isFiltersLoading, setIsFiltersLoading] = useState(true)
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
+    category: null,
+    subFilters: {},
   })
+
+  // Simulate fetching filters config from API
+  useEffect(() => {
+    const loadFilters = async () => {
+      setIsFiltersLoading(true)
+      // In production, this would be: const config = await fetchFiltersConfig("masters")
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setFiltersConfig(mastersFiltersConfig)
+      setIsFiltersLoading(false)
+    }
+    loadFilters()
+  }, [])
+
+  // Filter masters based on active filters
+  const filteredMasters = useMemo(() => {
+    if (!data?.masters) return []
+
+    return data.masters
+      .filter((master: { name: string; styles: string[]; specialty?: string }) => {
+        // Search filter
+        const matchesSearch = master.name.toLowerCase().includes(searchQuery.toLowerCase())
+        
+        // Category filter - map category to master's specialty/styles
+        let matchesCategory = true
+        if (activeFilters.category) {
+          // This mapping would come from the backend in production
+          const categoryMapping: Record<string, string[]> = {
+            painting: ["Живопись", "Художник", "Иллюстратор"],
+            tattoo: ["Реализм", "Графика", "Блэкворк", "Традишнл", "Акварель", "Минимализм", "Дотворк", "Геометрия"],
+            sculpture: ["Скульптор", "3D"],
+            photography: ["Фотограф", "Фотография"],
+            design: ["Дизайнер", "Дизайн"],
+          }
+          const relevantStyles = categoryMapping[activeFilters.category] || []
+          matchesCategory = master.styles?.some((style: string) => 
+            relevantStyles.some(rs => style.toLowerCase().includes(rs.toLowerCase()))
+          ) || false
+        }
+
+        // Sub-filters - example implementation
+        let matchesSubFilters = true
+        if (activeFilters.subFilters.style) {
+          const selectedStyles = Array.isArray(activeFilters.subFilters.style) 
+            ? activeFilters.subFilters.style 
+            : [activeFilters.subFilters.style]
+          
+          // Map filter IDs to actual style names
+          const styleMapping: Record<string, string> = {
+            realism: "Реализм",
+            traditional: "Традишнл",
+            blackwork: "Блэкворк",
+            dotwork: "Дотворк",
+            watercolor: "Акварель",
+            geometric: "Геометрия",
+            minimalism: "Минимализм",
+            impressionism: "Импрессионизм",
+            abstract: "Абстракция",
+          }
+          
+          matchesSubFilters = selectedStyles.some(styleId => {
+            const styleName = styleMapping[styleId]
+            return master.styles?.some((s: string) => 
+              s.toLowerCase().includes(styleName?.toLowerCase() || styleId)
+            )
+          })
+        }
+
+        return matchesSearch && matchesCategory && matchesSubFilters
+      })
+      .sort((a: { rating: number; reviewsCount: number }, b: { rating: number; reviewsCount: number }) => {
+        if (sortBy === "rating") return b.rating - a.rating
+        if (sortBy === "reviews") return b.reviewsCount - a.reviewsCount
+        return 0
+      })
+  }, [data?.masters, searchQuery, activeFilters, sortBy])
+
+  const clearAllFilters = () => {
+    setSearchQuery("")
+    setActiveFilters({ category: null, subFilters: {} })
+  }
+
+  const hasActiveFilters = activeFilters.category || Object.keys(activeFilters.subFilters).length > 0 || searchQuery
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,128 +123,103 @@ export function MastersPage() {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Мастера</h1>
           <p className="mt-1 text-muted-foreground">
-            Найдите лучших тату-мастеров в вашем городе
+            Найдите лучших мастеров в вашем городе
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Search */}
-          <div className="relative flex-1 sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Поиск по имени..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Desktop Filters */}
-            <div className="hidden gap-2 sm:flex">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Сортировка" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">По рейтингу</SelectItem>
-                  <SelectItem value="reviews">По отзывам</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          {/* Desktop Sidebar Filters */}
+          <aside className="hidden w-64 shrink-0 lg:block">
+            <div className="sticky top-24">
+              <SmartFiltersDesktop
+                config={filtersConfig}
+                isLoading={isFiltersLoading}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
             </div>
+          </aside>
 
-            {/* Mobile Filters */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="sm:hidden">
-                  <SlidersHorizontal className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto rounded-t-2xl">
-                <SheetHeader>
-                  <SheetTitle>Фильтры</SheetTitle>
-                </SheetHeader>
-                <div className="mt-4 flex flex-col gap-4 pb-6">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">Сортировка</label>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Сортировка" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="rating">По рейтингу</SelectItem>
-                        <SelectItem value="reviews">По отзывам</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">Стиль</label>
-                    <div className="flex flex-wrap gap-2">
-                      {styleFilters.map((style) => (
-                        <Badge
-                          key={style}
-                          variant={selectedStyle === style ? "default" : "outline"}
-                          className="cursor-pointer"
-                          onClick={() => setSelectedStyle(style)}
-                        >
-                          {style}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Search and Sort Bar */}
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск по имени..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Desktop Sort */}
+                <div className="hidden sm:block">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Сортировка" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rating">По рейтингу</SelectItem>
+                      <SelectItem value="reviews">По отзывам</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </SheetContent>
-            </Sheet>
+
+                {/* Mobile Filters */}
+                <div className="lg:hidden">
+                  <SmartFiltersMobile
+                    config={filtersConfig}
+                    isLoading={isFiltersLoading}
+                    activeFilters={activeFilters}
+                    onFiltersChange={setActiveFilters}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Badges */}
+            <div className="mb-4">
+              <ActiveFiltersBadges
+                config={filtersConfig}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
+            </div>
+
+            {/* Masters List */}
+            <div className="flex flex-col gap-4">
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-48 rounded-2xl" />
+                ))
+              ) : filteredMasters?.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-lg text-muted-foreground">Мастера не найдены</p>
+                  {hasActiveFilters && (
+                    <Button variant="link" onClick={clearAllFilters}>
+                      Сбросить фильтры
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                filteredMasters?.map((master: { id: string; name: string; avatar: string; specialty: string; rating: number; reviewsCount: number; location: string; styles: string[]; verified: boolean; experience: string; worksCount: number }) => (
+                  <MasterCard key={master.id} master={master} />
+                ))
+              )}
+            </div>
+
+            {/* Results Count */}
+            {!isLoading && filteredMasters?.length > 0 && (
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Найдено {filteredMasters.length} мастеров
+              </p>
+            )}
           </div>
         </div>
-
-        {/* Style Tags - Desktop */}
-        <div className="mb-6 hidden flex-wrap gap-2 sm:flex">
-          {styleFilters.map((style) => (
-            <Badge
-              key={style}
-              variant={selectedStyle === style ? "default" : "outline"}
-              className="cursor-pointer transition-colors hover:bg-primary/90"
-              onClick={() => setSelectedStyle(style)}
-            >
-              {style}
-              {selectedStyle === style && style !== "Все стили" && (
-                <X className="ml-1 size-3" onClick={(e) => { e.stopPropagation(); setSelectedStyle("Все стили") }} />
-              )}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Masters List */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 rounded-2xl" />
-            ))
-          ) : filteredMasters?.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-lg text-muted-foreground">Мастера не найдены</p>
-              <Button
-                variant="link"
-                onClick={() => { setSearchQuery(""); setSelectedStyle("Все стили") }}
-              >
-                Сбросить фильтры
-              </Button>
-            </div>
-          ) : (
-            filteredMasters?.map((master: { id: string; name: string; avatar: string; specialty: string; rating: number; reviewsCount: number; location: string; styles: string[]; verified: boolean; experience: string; worksCount: number }) => (
-              <MasterCard key={master.id} master={master} />
-            ))
-          )}
-        </div>
-
-        {/* Results Count */}
-        {!isLoading && filteredMasters?.length > 0 && (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Найдено {filteredMasters.length} мастеров
-          </p>
-        )}
       </main>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { 
@@ -90,6 +90,16 @@ export function PhotoDetailModal({
   const [localSaved, setLocalSaved] = useState(photo?.isSaved ?? false)
   const [localLikes, setLocalLikes] = useState(photo?.likes ?? 0)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Sync local state when photo changes (e.g., when navigating between photos)
+  useEffect(() => {
+    if (photo) {
+      setLocalLiked(photo.isLiked ?? false)
+      setLocalSaved(photo.isSaved ?? false)
+      setLocalLikes(photo.likes ?? 0)
+      setCurrentImageIndex(0)
+    }
+  }, [photo?.id, photo?.isLiked, photo?.isSaved, photo?.likes])
 
   // Get all images (support both single imageUrl and images array)
   const allImages = photo?.images?.length ? photo.images : (photo?.imageUrl ? [photo.imageUrl] : [])

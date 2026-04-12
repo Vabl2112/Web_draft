@@ -11,16 +11,12 @@ import {
   Share2,
   ChevronLeft,
   ChevronRight,
-  ShoppingCart,
   Truck,
   Shield,
   RotateCcw,
   Package,
-  Minus,
-  Plus,
   Check,
-  MessageCircle,
-  Loader2
+  MessageCircle
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -81,7 +77,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<{ name: string; value: string } | null>(null)
 
@@ -124,18 +119,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     setCurrentImageIndex((prev) => 
       prev === product.images.length - 1 ? 0 : prev + 1
     )
-  }
-
-  const incrementQuantity = () => {
-    if (product && quantity < product.stockCount) {
-      setQuantity(q => q + 1)
-    }
-  }
-
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(q => q - 1)
-    }
   }
 
   // Loading state
@@ -409,46 +392,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Quantity & Add to Cart */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              {/* Quantity */}
-              <div className="flex items-center rounded-lg border border-border">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-r-none"
-                  onClick={decrementQuantity}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="size-4" />
-                </Button>
-                <span className="min-w-12 text-center font-medium">{quantity}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-l-none"
-                  onClick={incrementQuantity}
-                  disabled={quantity >= product.stockCount}
-                >
-                  <Plus className="size-4" />
-                </Button>
-              </div>
-
-              {/* Add to Cart */}
-              <Button 
-                className="flex-1 gap-2" 
-                size="lg"
-                disabled={!product.inStock || (product.sizes && product.sizes.length > 0 && !selectedSize)}
-              >
-                <ShoppingCart className="size-4" />
-                В корзину
-              </Button>
-            </div>
-
-            {product.sizes && product.sizes.length > 0 && !selectedSize && (
-              <p className="text-sm text-muted-foreground">Выберите размер для добавления в корзину</p>
             )}
 
             {/* Delivery Info */}
