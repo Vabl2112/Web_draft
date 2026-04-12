@@ -90,7 +90,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
       author: image.author,
       authorAvatar: image.authorAvatar,
       likes: Math.floor(Math.random() * 500) + 50,
-      isLiked: false,
+      isLiked: likedImages.has(image.id),
       isSaved: false,
       comments: sampleComments,
       timeAgo: "3 дня назад",
@@ -98,6 +98,18 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
     }
     setSelectedPhoto(photoDetail)
     setSelectedIndex(flatIndex)
+  }
+
+  const handleModalLike = (photoId: string) => {
+    setLikedImages(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(photoId)) {
+        newSet.delete(photoId)
+      } else {
+        newSet.add(photoId)
+      }
+      return newSet
+    })
   }
 
   const handlePrevious = () => {
@@ -143,10 +155,20 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
+                    className={cn(
+                      "absolute right-3 top-3 transition-all duration-200",
+                      likedImages.has(image.id) 
+                        ? "opacity-100" 
+                        : "opacity-0 group-hover:opacity-100"
+                    )}
                     onClick={(e) => toggleLike(image.id, e)}
                   >
-                    <Heart className={cn("size-4", likedImages.has(image.id) && "fill-destructive text-destructive")} />
+                    <Heart 
+                      className={cn(
+                        "size-4 transition-all duration-200", 
+                        likedImages.has(image.id) && "fill-destructive text-destructive scale-110"
+                      )} 
+                    />
                   </Button>
                   
                   {/* Hover overlay with stats */}
@@ -188,6 +210,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
           setSelectedPhoto(null)
           setSelectedIndex(-1)
         }}
+        onLike={handleModalLike}
         onPrevious={handlePrevious}
         onNext={handleNext}
         hasPrevious={selectedIndex > 0}
