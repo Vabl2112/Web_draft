@@ -135,15 +135,14 @@ export function PhotoDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row">
         <DialogTitle className="sr-only">{photo.title}</DialogTitle>
         <DialogDescription className="sr-only">
           {photo.description || `Фото работы от ${photo.author}`}
         </DialogDescription>
         
-        <div className="flex h-full flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative min-h-[50vh] flex-1 bg-black md:min-h-full">
+          <div className="relative h-[50vh] w-full bg-black md:h-full md:flex-1">
             <Image
               src={currentImage}
               alt={photo.title}
@@ -241,7 +240,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex h-[40vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[380px]">
+          <div className="flex h-[40vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[400px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 
@@ -398,7 +397,6 @@ export function PhotoDetailModal({
               </form>
             </div>
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   )
