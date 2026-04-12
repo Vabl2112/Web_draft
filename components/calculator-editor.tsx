@@ -692,6 +692,41 @@ export function CalculatorEditor({
                 </div>
               </div>
               
+              {/* Variable mapping table */}
+              {variables.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-muted-foreground mb-2">Значения переменных в предпросмотре:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {variables.map(v => {
+                      let displayValue: string | number = v.defaultValue
+                      let valueDescription = ""
+                      
+                      if ((v.type === "select" || v.type === "radio") && v.options.length > 0) {
+                        displayValue = v.options[0].value
+                        valueDescription = v.options[0].label ? ` (${v.options[0].label})` : ""
+                      } else if (v.type === "checkbox") {
+                        displayValue = v.checkedValue || 1
+                        valueDescription = " (вкл)"
+                      } else if (v.unit) {
+                        valueDescription = ` ${v.unit}`
+                      }
+                      
+                      return (
+                        <div key={v.id} className="flex items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="font-mono font-bold shrink-0">
+                            {v.name}
+                          </Badge>
+                          <span className="text-muted-foreground">=</span>
+                          <span className="font-medium truncate">
+                            {displayValue}{valueDescription}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {variables.length > 0 && formula && (() => {
                 const preview = previewPrice()
                 return (
