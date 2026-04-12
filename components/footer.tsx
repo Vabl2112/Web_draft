@@ -33,7 +33,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto max-w-7xl px-4 py-12">
         {/* Main Footer Content */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
@@ -85,12 +85,12 @@ export function Footer() {
           {/* Links - Company */}
           <div>
             <h3 className="mb-4 font-semibold">Компания</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-block py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>
@@ -102,12 +102,12 @@ export function Footer() {
           {/* Links - Services */}
           <div>
             <h3 className="mb-4 font-semibold">Услуги</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {footerLinks.services.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-block py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>
@@ -119,12 +119,12 @@ export function Footer() {
           {/* Links - Support */}
           <div>
             <h3 className="mb-4 font-semibold">Поддержка</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {footerLinks.support.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-block py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </Link>

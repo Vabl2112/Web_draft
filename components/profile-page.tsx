@@ -171,10 +171,10 @@ export function ProfilePage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="activity">Активность</TabsTrigger>
-              <TabsTrigger value="reviews">Мои отзывы</TabsTrigger>
-              <TabsTrigger value="info">Информация</TabsTrigger>
+            <TabsList className="w-full justify-start overflow-x-auto">
+              <TabsTrigger value="activity" className="flex-shrink-0">Активность</TabsTrigger>
+              <TabsTrigger value="reviews" className="flex-shrink-0">Мои отзывы</TabsTrigger>
+              <TabsTrigger value="info" className="flex-shrink-0">Информация</TabsTrigger>
             </TabsList>
 
             <TabsContent value="activity" className="mt-6">

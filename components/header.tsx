@@ -361,7 +361,7 @@ export function Header() {
                     <SheetClose key={link.href} asChild>
                       <Link
                         href={link.href}
-                        className="flex items-center py-3 text-base font-medium text-foreground transition-colors hover:text-foreground/70"
+                        className="flex min-h-[44px] items-center py-3 text-base font-medium text-foreground transition-colors hover:text-foreground/70 active:bg-muted/50 -mx-4 px-4 rounded-lg"
                       >
                         {link.label}
                       </Link>
