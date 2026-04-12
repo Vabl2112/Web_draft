@@ -141,19 +141,17 @@ export function PhotoDetailModal({
           {photo.description || `Фото работы от ${photo.author}`}
         </DialogDescription>
         
-        <div className="flex h-full flex-col md:flex-row">
+        <div className="grid h-full grid-rows-[1fr_auto] md:grid-cols-[1fr_380px] md:grid-rows-1">
           {/* Image Section */}
-          <div className="relative flex h-[50vh] w-full items-center justify-center bg-black md:h-full md:flex-1">
-            <div className="relative h-full w-full">
-              <Image
-                src={currentImage}
-                alt={photo.title}
-                fill
-                className="object-contain p-2 md:p-4"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 65vw"
-                priority
-              />
-            </div>
+          <div className="relative h-[50vh] w-full bg-black md:h-full">
+            <Image
+              src={currentImage}
+              alt={photo.title}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 70vw"
+              priority
+            />
             
             {/* Close button */}
             <Button
@@ -243,7 +241,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full md:w-[340px] md:min-w-[340px] lg:w-[380px] lg:min-w-[380px]">
+          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 
