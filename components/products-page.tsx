@@ -354,7 +354,7 @@ export function ProductsPage() {
             Товары
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Качественные товары для ухода и стиля
+            Уникальные изделия ручной работы от мастеров
           </p>
         </div>
 

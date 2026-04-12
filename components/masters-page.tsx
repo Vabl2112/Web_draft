@@ -123,7 +123,7 @@ export function MastersPage() {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Мастера</h1>
           <p className="mt-1 text-muted-foreground">
-            Найдите лучших мастеров в вашем городе
+            Художники, ремесленники и мастера со всей страны
           </p>
         </div>
 

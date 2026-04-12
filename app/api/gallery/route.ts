@@ -3,71 +3,71 @@ import type { GalleryCategory, GalleryImage } from "@/lib/types"
 
 const categories: GalleryCategory[] = [
   {
-    id: "tattoo",
-    name: "Тату",
+    id: "painting",
+    name: "Живопись",
     subFilters: [
-      { id: "realism", name: "Реализм" },
-      { id: "traditional", name: "Традишнл" },
-      { id: "blackwork", name: "Блэкворк" },
-      { id: "dotwork", name: "Дотворк" },
+      { id: "oil", name: "Масло" },
+      { id: "acrylic", name: "Акрил" },
       { id: "watercolor", name: "Акварель" },
-      { id: "geometric", name: "Геометрия" },
-      { id: "minimalism", name: "Минимализм" },
-    ],
-  },
-  {
-    id: "art",
-    name: "Арт",
-    subFilters: [
-      { id: "digital", name: "Диджитал" },
-      { id: "sketch", name: "Скетчи" },
-      { id: "illustration", name: "Иллюстрации" },
       { id: "portrait", name: "Портреты" },
+      { id: "landscape", name: "Пейзажи" },
       { id: "abstract", name: "Абстракция" },
     ],
   },
   {
-    id: "leather",
-    name: "Работа по коже",
+    id: "ceramics",
+    name: "Керамика",
     subFilters: [
-      { id: "bags", name: "Сумки" },
-      { id: "wallets", name: "Кошельки" },
-      { id: "belts", name: "Ремни" },
-      { id: "accessories", name: "Аксессуары" },
+      { id: "dishes", name: "Посуда" },
+      { id: "vases", name: "Вазы" },
+      { id: "sculpture", name: "Скульптура" },
+      { id: "decor", name: "Декор" },
+    ],
+  },
+  {
+    id: "jewelry",
+    name: "Украшения",
+    subFilters: [
+      { id: "rings", name: "Кольца" },
+      { id: "necklaces", name: "Колье" },
+      { id: "earrings", name: "Серьги" },
+      { id: "bracelets", name: "Браслеты" },
       { id: "custom", name: "На заказ" },
     ],
   },
   {
-    id: "piercing",
-    name: "Пирсинг",
+    id: "woodwork",
+    name: "Изделия из дерева",
     subFilters: [
-      { id: "ear", name: "Уши" },
-      { id: "face", name: "Лицо" },
-      { id: "body", name: "Тело" },
-      { id: "jewelry", name: "Украшения" },
+      { id: "furniture", name: "Мебель" },
+      { id: "decor", name: "Декор" },
+      { id: "toys", name: "Игрушки" },
+      { id: "kitchenware", name: "Кухонная утварь" },
     ],
   },
   {
-    id: "permanent",
-    name: "Перманент",
+    id: "textile",
+    name: "Текстиль",
     subFilters: [
-      { id: "brows", name: "Брови" },
-      { id: "lips", name: "Губы" },
-      { id: "eyes", name: "Веки" },
-      { id: "areola", name: "Ареолы" },
+      { id: "embroidery", name: "Вышивка" },
+      { id: "knitting", name: "Вязание" },
+      { id: "sewing", name: "Шитьё" },
+      { id: "macrame", name: "Макраме" },
+    ],
+  },
+  {
+    id: "photography",
+    name: "Фотография",
+    subFilters: [
+      { id: "portrait", name: "Портрет" },
+      { id: "landscape", name: "Пейзаж" },
+      { id: "street", name: "Стрит" },
+      { id: "product", name: "Предметная" },
     ],
   },
 ]
 
-const tattooImages = [
-  "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1590246815117-ce3dbe62c661?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1542856204-00101eb6def4?w=400&h=700&fit=crop",
-  "https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=450&fit=crop",
-  "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=550&fit=crop",
-]
-
-const artImages = [
+const paintingImages = [
   "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop",
   "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=400&h=600&fit=crop",
   "https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=450&fit=crop",
@@ -75,34 +75,53 @@ const artImages = [
   "https://images.unsplash.com/photo-1482160549825-59d1b23cb208?w=400&h=550&fit=crop",
 ]
 
-const leatherImages = [
-  "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=450&fit=crop",
-  "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&h=550&fit=crop",
-  "https://images.unsplash.com/photo-1622560480654-d96214fdc887?w=400&h=700&fit=crop",
+const ceramicsImages = [
+  "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=400&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?w=400&h=450&fit=crop",
+  "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=400&h=700&fit=crop",
+  "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=400&h=550&fit=crop",
 ]
 
-const piercingImages = [
-  "https://images.unsplash.com/photo-1630019852942-f89202989a59?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1609505848912-b7c3b8b4beda?w=400&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1617391654483-1d7069649354?w=400&h=450&fit=crop",
-  "https://images.unsplash.com/photo-1516914589923-f105f1535f88?w=400&h=550&fit=crop",
+const jewelryImages = [
+  "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=450&fit=crop",
+  "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&h=700&fit=crop",
+  "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&h=550&fit=crop",
 ]
 
-const permanentImages = [
-  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1588006173527-3e110058a2ed?w=400&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400&h=450&fit=crop",
-  "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&h=550&fit=crop",
+const woodworkImages = [
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=450&fit=crop",
+  "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=400&h=700&fit=crop",
+  "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&h=550&fit=crop",
+]
+
+const textileImages = [
+  "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=450&fit=crop",
+  "https://images.unsplash.com/photo-1617713964959-d9a36bbc7b52?w=400&h=700&fit=crop",
+  "https://images.unsplash.com/photo-1489274495757-95c7c837b101?w=400&h=550&fit=crop",
+]
+
+const photographyImages = [
+  "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1500051638674-ff996a0ec29e?w=400&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=450&fit=crop",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=700&fit=crop",
+  "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400&h=550&fit=crop",
 ]
 
 const imagesByCategory: Record<string, string[]> = {
-  tattoo: tattooImages,
-  art: artImages,
-  leather: leatherImages,
-  piercing: piercingImages,
-  permanent: permanentImages,
+  painting: paintingImages,
+  ceramics: ceramicsImages,
+  jewelry: jewelryImages,
+  woodwork: woodworkImages,
+  textile: textileImages,
+  photography: photographyImages,
 }
 
 const heights: ("small" | "medium" | "large")[] = ["small", "medium", "large"]
@@ -117,7 +136,7 @@ const authors = [
 
 function generateImages(category: string, subCategory?: string): GalleryImage[] {
   const categoryData = categories.find((c) => c.id === category)
-  const images = imagesByCategory[category] || tattooImages
+  const images = imagesByCategory[category] || paintingImages
   const subFilters = categoryData?.subFilters || []
   
   const result: GalleryImage[] = []
@@ -149,7 +168,7 @@ function generateImages(category: string, subCategory?: string): GalleryImage[] 
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const category = searchParams.get("category") || "tattoo"
+  const category = searchParams.get("category") || "painting"
   const subCategory = searchParams.get("subCategory") || undefined
 
   await new Promise((resolve) => setTimeout(resolve, 300))

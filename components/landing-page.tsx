@@ -34,39 +34,39 @@ const featuredMasters = [
   {
     id: "1",
     name: "Мария Иванова",
-    specialty: "Японский стиль",
+    specialty: "Живопись",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
     rating: 4.9,
     reviews: 127,
-    image: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=500&fit=crop",
+    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop",
   },
   {
     id: "2",
     name: "Дмитрий Козлов",
-    specialty: "Реализм",
+    specialty: "Керамика",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
     rating: 4.8,
     reviews: 89,
-    image: "https://images.unsplash.com/photo-1590246814883-57764a58d1a3?w=400&h=500&fit=crop",
+    image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=500&fit=crop",
   },
   {
     id: "3",
     name: "Анна Петрова",
-    specialty: "Минимализм",
+    specialty: "Ювелирное дело",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
     rating: 5.0,
     reviews: 156,
-    image: "https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=500&fit=crop",
+    image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=500&fit=crop",
   },
 ]
 
 const galleryImages = [
-  { id: "1", src: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=400&fit=crop", alt: "Тату 1" },
-  { id: "2", src: "https://images.unsplash.com/photo-1590246814883-57764a58d1a3?w=400&h=400&fit=crop", alt: "Тату 2" },
-  { id: "3", src: "https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=400&fit=crop", alt: "Тату 3" },
-  { id: "4", src: "https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=400&fit=crop", alt: "Тату 4" },
-  { id: "5", src: "https://images.unsplash.com/photo-1475180098004-ca77a66827be?w=400&h=400&fit=crop", alt: "Тату 5" },
-  { id: "6", src: "https://images.unsplash.com/photo-1542756796-a50f9f5ae419?w=400&h=400&fit=crop", alt: "Тату 6" },
+  { id: "1", src: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=400&fit=crop", alt: "Картина" },
+  { id: "2", src: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=400&fit=crop", alt: "Керамика" },
+  { id: "3", src: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=400&fit=crop", alt: "Украшения" },
+  { id: "4", src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop", alt: "Мебель" },
+  { id: "5", src: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=400&h=400&fit=crop", alt: "Фотография" },
+  { id: "6", src: "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=400&h=400&fit=crop", alt: "Текстиль" },
 ]
 
 const stats = [
@@ -151,14 +151,14 @@ export function LandingPage() {
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div className="flex flex-col items-start">
                 <Badge variant="secondary" className="mb-4 rounded-full px-4 py-1">
-                  Лучшие мастера города
+                  Платформа для творческих людей
                 </Badge>
                 <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                  Найди своего <span className="text-amber-500">тату-мастера</span>
+                  Найди своего <span className="text-amber-500">мастера</span>
                 </h1>
                 <p className="mt-6 max-w-lg text-pretty text-lg text-muted-foreground">
-                  EGG — платформа, где встречаются талантливые мастера и ценители качественных татуировок. 
-                  Просматривайте портфолио, читайте отзывы и записывайтесь онлайн.
+                  EGG — маркетплейс, где творческие люди продают свои работы, услуги и товары ручной работы. 
+                  Художники, керамисты, ювелиры, фотографы и другие мастера — все в одном месте.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-4">
                   <Link href="/masters">
@@ -169,7 +169,7 @@ export function LandingPage() {
                   </Link>
                   <Link href="/register">
                     <Button size="lg" variant="outline" className="rounded-full px-8">
-                      Стать мастером
+                      Начать продавать
                     </Button>
                   </Link>
                 </div>
@@ -191,16 +191,16 @@ export function LandingPage() {
                   <div className="space-y-4">
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
                       <Image
-                        src="https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=500&fit=crop"
-                        alt="Тату работа"
+                        src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=500&fit=crop"
+                        alt="Живопись"
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div className="relative aspect-square overflow-hidden rounded-2xl">
                       <Image
-                        src="https://images.unsplash.com/photo-1590246814883-57764a58d1a3?w=400&h=400&fit=crop"
-                        alt="Тату работа"
+                        src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=400&fit=crop"
+                        alt="Керамика"
                         fill
                         className="object-cover"
                       />
@@ -209,16 +209,16 @@ export function LandingPage() {
                   <div className="space-y-4 pt-8">
                     <div className="relative aspect-square overflow-hidden rounded-2xl">
                       <Image
-                        src="https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=400&fit=crop"
-                        alt="Тату работа"
+                        src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=400&fit=crop"
+                        alt="Украшения"
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
                       <Image
-                        src="https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=500&fit=crop"
-                        alt="Тату работа"
+                        src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=500&fit=crop"
+                        alt="Мебель ручной работы"
                         fill
                         className="object-cover"
                       />
@@ -236,7 +236,7 @@ export function LandingPage() {
             <div className="text-center">
               <h2 className="text-3xl font-bold sm:text-4xl">Почему выбирают EGG</h2>
               <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-                Мы создали платформу, которая упрощает поиск идеального мастера
+                Платформа, которая объединяет творческих людей и ценителей ручной работы
               </p>
             </div>
 
@@ -244,23 +244,23 @@ export function LandingPage() {
               {[
                 {
                   icon: Users,
-                  title: "Проверенные мастера",
-                  description: "Каждый мастер проходит верификацию и подтверждает свой опыт",
+                  title: "Талантливые мастера",
+                  description: "Художники, ремесленники и мастера со всей страны в одном месте",
                 },
                 {
                   icon: ImageIcon,
-                  title: "Большое портфолио",
-                  description: "Тысячи работ для вдохновения и выбора своего стиля",
+                  title: "Уникальные работы",
+                  description: "Тысячи работ ручной работы: от картин до мебели и украшений",
                 },
                 {
                   icon: Star,
                   title: "Честные отзывы",
-                  description: "Реальные отзывы от клиентов помогут сделать правильный выбор",
+                  description: "Реальные отзывы от покупателей помогут сделать правильный выбор",
                 },
                 {
                   icon: Shield,
-                  title: "Безопасность",
-                  description: "Онлайн-запись и прозрачные условия сотрудничества",
+                  title: "Безопасные сделки",
+                  description: "Прозрачные условия и защита для покупателей и продавцов",
                 },
               ].map((feature) => (
                 <div key={feature.title} className="flex flex-col items-center text-center">
@@ -390,10 +390,10 @@ export function LandingPage() {
         <section className="py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4">
             <div className="rounded-3xl bg-foreground px-6 py-16 text-center text-background sm:px-12">
-              <h2 className="text-3xl font-bold sm:text-4xl">Готовы найти своего мастера?</h2>
+              <h2 className="text-3xl font-bold sm:text-4xl">Присоединяйтесь к EGG</h2>
               <p className="mx-auto mt-4 max-w-xl text-background/70">
-                Зарегистрируйтесь сейчас и получите доступ ко всем функциям платформы: 
-                записывайтесь к мастерам, сохраняйте понравившиеся работы и общайтесь напрямую.
+                Зарегистрируйтесь и откройте для себя мир творчества: покупайте уникальные работы, 
+                заказывайте услуги у мастеров или начните продавать свои изделия.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link href="/register">

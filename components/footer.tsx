@@ -20,7 +20,7 @@ const footerLinks = {
   ],
   support: [
     { href: "/faq", label: "Частые вопросы" },
-    { href: "/care", label: "Уход за тату" },
+    { href: "/help", label: "Центр помощи" },
     { href: "/contact", label: "Связаться с нами" },
     { href: "/privacy", label: "Политика конфиденциальности" },
   ],
@@ -43,7 +43,7 @@ export function Footer() {
               <span className="text-3xl font-bold text-amber-500">EGG</span>
             </Link>
             <p className="mt-4 max-w-sm text-muted-foreground">
-              Профессиональная тату-студия с лучшими мастерами города. Воплощаем ваши идеи в искусство на коже.
+              Маркетплейс для творческих людей. Покупайте уникальные работы, заказывайте услуги у мастеров или продавайте свои изделия.
             </p>
             
             <div className="mt-6 space-y-3">
@@ -57,7 +57,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="size-5 shrink-0 text-muted-foreground" />
-                <a href="mailto:info@egg-tattoo.ru" className="hover:text-foreground/70">info@egg-tattoo.ru</a>
+                <a href="mailto:hello@egg.market" className="hover:text-foreground/70">hello@egg.market</a>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Clock className="size-5 shrink-0 text-muted-foreground" />
@@ -159,7 +159,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            2024 EGG Tattoo Studio. Все права защищены.
+            2024 EGG Market. Все права защищены.
           </p>
           <div className="flex gap-6">
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">

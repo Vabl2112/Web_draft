@@ -228,11 +228,11 @@ export function LoginPage() {
           </div>
           
           <h2 className="mb-4 text-center text-3xl font-bold">
-            Найдите своего мастера
+            Платформа для творчества
           </h2>
           
           <p className="mb-12 max-w-md text-center text-lg text-background/70">
-            Тысячи талантливых тату-мастеров готовы воплотить ваши идеи в жизнь
+            Тысячи талантливых мастеров: художники, керамисты, ювелиры и другие профессионалы
           </p>
 
           {/* Stats */}
@@ -247,19 +247,19 @@ export function LoginPage() {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-amber-500">50k+</div>
-              <div className="mt-1 text-sm text-background/70">Клиентов</div>
+              <div className="mt-1 text-sm text-background/70">Покупателей</div>
             </div>
           </div>
 
           {/* Testimonial */}
           <div className="mt-16 max-w-md rounded-2xl border border-background/20 bg-background/10 p-6 backdrop-blur-sm">
             <p className="mb-4 text-background/90">
-              &ldquo;Отличный сервис! Нашел идеального мастера за 10 минут. Результат превзошел все ожидания.&rdquo;
+              &ldquo;Нашла потрясающего керамиста и заказала набор посуды ручной работы. Качество и сервис на высоте!&rdquo;
             </p>
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-background/20" />
               <div>
-                <div className="font-medium">Александр К.</div>
+                <div className="font-medium">Елена М.</div>
                 <div className="text-sm text-background/60">Москва</div>
               </div>
             </div>

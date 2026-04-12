@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'EGG - Тату-студия',
-  description: 'Лучшие тату-мастера, услуги и товары для ухода за татуировками',
+  title: 'EGG - Платформа для творческих людей',
+  description: 'Маркетплейс для художников, мастеров и ремесленников. Продавайте свои работы, услуги и товары ручной работы',
   generator: 'v0.app',
   formatDetection: {
     telephone: true,
