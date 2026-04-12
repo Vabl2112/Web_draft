@@ -253,7 +253,7 @@ export function FavoritesPage() {
                         "p-4",
                         viewMode === "list" && "flex items-center gap-4"
                       )}>
-                        <Link href={`/artist/${artist.id}`} className={cn(
+                        <Link href={`/master/${artist.id}`} className={cn(
                           "flex gap-4",
                           viewMode === "grid" && "flex-col items-center text-center"
                         )}>

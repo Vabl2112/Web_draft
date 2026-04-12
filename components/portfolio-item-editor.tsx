@@ -33,15 +33,29 @@ interface PortfolioItemEditorProps {
     images: { id: string; url: string }[]
   }) => void
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function PortfolioItemEditor({ 
   mode = "add", 
   initialData,
   onSave,
-  trigger
+  trigger,
+  open: controlledOpen,
+  onOpenChange
 }: PortfolioItemEditorProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  
+  // Use controlled or uncontrolled mode
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setIsOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value)
+    } else {
+      setInternalOpen(value)
+    }
+  }
   const [title, setTitle] = useState(initialData?.title || "")
   const [description, setDescription] = useState(initialData?.description || "")
   const [images, setImages] = useState<{ id: string; url: string }[]>(

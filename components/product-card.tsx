@@ -92,7 +92,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Seller */}
         <Link
-          href={`/artist/${product.seller.id}`}
+          href={`/master/${product.seller.id}`}
           className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           <Avatar className="size-6">

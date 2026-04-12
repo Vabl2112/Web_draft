@@ -27,7 +27,7 @@ export function MasterCard({ master }: MasterCardProps) {
     <div className="group rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-lg sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
         {/* Avatar */}
-        <Link href={`/artist/${master.id}`} className="shrink-0 self-center sm:self-start">
+        <Link href={`/master/${master.id}`} className="shrink-0 self-center sm:self-start">
           <Avatar className="size-24 ring-4 ring-background shadow-lg transition-transform group-hover:scale-105 sm:size-28">
             <AvatarImage src={master.avatar} alt={master.name} />
             <AvatarFallback>{master.name.slice(0, 2)}</AvatarFallback>
@@ -37,7 +37,7 @@ export function MasterCard({ master }: MasterCardProps) {
         {/* Info */}
         <div className="flex min-w-0 flex-1 flex-col text-center sm:text-left">
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-3">
-            <Link href={`/artist/${master.id}`}>
+            <Link href={`/master/${master.id}`}>
               <h3 className="text-lg font-semibold text-foreground transition-colors hover:text-foreground/80 sm:text-xl">
                 {master.name}
               </h3>
@@ -90,7 +90,7 @@ export function MasterCard({ master }: MasterCardProps) {
         {/* Actions */}
         <div className="mt-4 flex flex-col gap-2 sm:mt-0 sm:shrink-0">
           <Button asChild className="w-full sm:w-auto">
-            <Link href={`/artist/${master.id}`}>Профиль</Link>
+            <Link href={`/master/${master.id}`}>Профиль</Link>
           </Button>
           <Button variant="outline" className="w-full sm:w-auto">
             Написать

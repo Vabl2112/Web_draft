@@ -118,7 +118,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
 
           {/* Seller */}
           <Link
-            href={`/artist/${product.seller.id}`}
+            href={`/master/${product.seller.id}`}
             className="mt-2 flex items-center gap-2 transition-opacity hover:opacity-80"
           >
             <Avatar className="size-5">
@@ -210,7 +210,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
 
         {/* Seller */}
         <Link
-          href={`/artist/${product.seller.id}`}
+          href={`/master/${product.seller.id}`}
           className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           <Avatar className="size-6">
