@@ -1,30 +1,82 @@
 import { NextResponse } from "next/server"
-import type { CalculatorConfig, MasterCalculatorConfig } from "@/lib/types"
+import type { CalculatorVariable, MasterCalculatorConfig } from "@/lib/types"
 
 // In-memory storage for demo (in production, this would be in a database)
 const calculatorConfigs: Record<string, MasterCalculatorConfig> = {
   "1": {
     variables: [
-      { id: "a", name: "a", label: "Размер (см)", type: "slider", defaultValue: 15, min: 5, max: 30, step: 1, unit: "см" },
-      { id: "b", name: "b", label: "Сложность", type: "select", defaultValue: 2, options: [
-        { value: 1, label: "Контур" },
-        { value: 2, label: "Тени" },
-        { value: 3, label: "Цвет" },
-      ]},
-      { id: "c", name: "c", label: "Место нанесения", type: "select", defaultValue: 1, options: [
-        { value: 1, label: "Запястье" },
-        { value: 1.2, label: "Предплечье" },
-        { value: 1.3, label: "Плечо" },
-        { value: 1.5, label: "Спина" },
-        { value: 1.4, label: "Грудь" },
-        { value: 1.2, label: "Нога" },
-        { value: 1.6, label: "Ребра" },
-        { value: 1.5, label: "Шея" },
-      ]},
+      { 
+        id: "a", 
+        name: "a", 
+        label: "Размер (см)", 
+        type: "slider", 
+        defaultValue: 15, 
+        min: 5, 
+        max: 30, 
+        step: 1, 
+        unit: "см" 
+      },
+      { 
+        id: "b", 
+        name: "b", 
+        label: "Стиль", 
+        type: "radio", 
+        defaultValue: 100, 
+        options: [
+          { value: 100, label: "Реализм" },
+          { value: 70, label: "Графика" },
+          { value: 50, label: "Олдскул" },
+        ]
+      },
+      { 
+        id: "c", 
+        name: "c", 
+        label: "Сложность", 
+        type: "select", 
+        defaultValue: 1, 
+        options: [
+          { value: 1, label: "Контур" },
+          { value: 1.5, label: "Тени" },
+          { value: 2, label: "Цвет" },
+        ]
+      },
+      { 
+        id: "d", 
+        name: "d", 
+        label: "Место нанесения", 
+        type: "select", 
+        defaultValue: 1, 
+        options: [
+          { value: 1, label: "Запястье" },
+          { value: 1.2, label: "Предплечье" },
+          { value: 1.3, label: "Плечо" },
+          { value: 1.5, label: "Спина" },
+          { value: 1.4, label: "Грудь" },
+          { value: 1.2, label: "Нога" },
+          { value: 1.6, label: "Ребра" },
+          { value: 1.5, label: "Шея" },
+        ]
+      },
+      {
+        id: "e",
+        name: "e",
+        label: "Срочный заказ",
+        type: "checkbox",
+        defaultValue: 0,
+        checkedValue: 1.5,
+        uncheckedValue: 1
+      }
     ],
-    formula: "(a * 500 * b * c)",
+    formula: "(a * b * c * d * e)",
     currency: "₽",
   }
+}
+
+// Response format for the client
+interface ClientCalculatorConfig {
+  formula: string
+  parameters: CalculatorVariable[]
+  currency: string
 }
 
 // GET - Retrieve calculator config for an artist
@@ -38,73 +90,27 @@ export async function GET(
   const masterConfig = calculatorConfigs[artistId]
   
   if (!masterConfig) {
-    // Return default config if not found
-    const defaultConfig: CalculatorConfig = {
-      formula: "(a * 500 * b * c)",
-      currency: "₽",
-      parameters: [
-        {
-          id: "a",
-          label: "Размер (см)",
-          type: "slider",
-          defaultValue: 15,
-          min: 5,
-          max: 30,
-          step: 1,
-          unit: "см",
-          marks: [
-            { value: 5, label: "5" },
-            { value: 15, label: "15" },
-            { value: 30, label: "30" }
-          ]
-        },
-        {
-          id: "b",
-          label: "Сложность",
-          type: "radio",
-          defaultValue: "2",
-          options: [
-            { value: "1", label: "Контур" },
-            { value: "2", label: "Тени" },
-            { value: "3", label: "Цвет" }
-          ]
-        },
-        {
-          id: "c",
-          label: "Место нанесения",
-          type: "select",
-          defaultValue: "1",
-          options: [
-            { value: "1", label: "Запястье" },
-            { value: "1.2", label: "Предплечье" },
-            { value: "1.3", label: "Плечо" },
-            { value: "1.5", label: "Спина" },
-          ]
-        }
-      ]
-    }
-    return NextResponse.json(defaultConfig)
+    // Return null if not found
+    return NextResponse.json(null)
   }
   
-  // Transform master config to client-facing config
-  const clientConfig: CalculatorConfig = {
+  // Return in format expected by calculator-card
+  const clientConfig: ClientCalculatorConfig = {
     formula: masterConfig.formula,
     currency: masterConfig.currency,
     parameters: masterConfig.variables.map(v => ({
-      id: v.name,
+      id: v.id,
+      name: v.name,
       label: v.label,
-      type: v.type === "number" ? "slider" : v.type === "select" ? "select" : "slider",
+      type: v.type,
       defaultValue: v.defaultValue,
       min: v.min,
       max: v.max,
       step: v.step,
       unit: v.unit,
-      options: v.options?.map(o => ({ value: String(o.value), label: o.label })),
-      marks: v.type === "slider" && v.min !== undefined && v.max !== undefined ? [
-        { value: v.min, label: String(v.min) },
-        { value: Math.round((v.min + v.max) / 2), label: String(Math.round((v.min + v.max) / 2)) },
-        { value: v.max, label: String(v.max) },
-      ] : undefined,
+      options: v.options,
+      checkedValue: v.checkedValue,
+      uncheckedValue: v.uncheckedValue
     }))
   }
 

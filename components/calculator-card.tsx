@@ -7,11 +7,12 @@ import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calculator, Settings, Trash2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
+import { Calculator } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { CalculatorEditor } from "@/components/calculator-editor"
-import type { CalculatorConfig, CalculatorParameter, MasterCalculatorConfig } from "@/lib/types"
+import type { MasterCalculatorConfig, CalculatorVariable } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -20,6 +21,13 @@ interface CalculatorCardProps {
   isOwner?: boolean
   onEdit?: (calculator: MasterCalculatorConfig & { name?: string }) => void
   onDelete?: (index: number) => void
+}
+
+// Internal config format for rendering
+interface CalculatorConfig {
+  formula: string
+  parameters: CalculatorVariable[]
+  currency: string
 }
 
 function SingleCalculator({ 
@@ -33,21 +41,29 @@ function SingleCalculator({
   onEdit?: (calculator: MasterCalculatorConfig & { name?: string }) => void
   onDelete?: () => void
 }) {
-  const [values, setValues] = useState<Record<string, string | number>>({})
+  const [values, setValues] = useState<Record<string, number>>({})
 
   // Initialize values when config loads
   useEffect(() => {
     if (config?.parameters) {
-      const initialValues: Record<string, string | number> = {}
+      const initialValues: Record<string, number> = {}
       config.parameters.forEach(param => {
-        initialValues[param.id] = param.defaultValue
+        if (param.type === "select" || param.type === "radio") {
+          // Use first option's value as default
+          initialValues[param.name] = param.options?.[0]?.value ?? 0
+        } else if (param.type === "checkbox") {
+          // Use unchecked value as default
+          initialValues[param.name] = param.uncheckedValue ?? 0
+        } else {
+          initialValues[param.name] = param.defaultValue
+        }
       })
       setValues(initialValues)
     }
   }, [config])
 
-  const updateValue = (id: string, value: string | number) => {
-    setValues(prev => ({ ...prev, [id]: value }))
+  const updateValue = (name: string, value: number) => {
+    setValues(prev => ({ ...prev, [name]: value }))
   }
 
   const calculatedPrice = useMemo(() => {
@@ -56,10 +72,7 @@ function SingleCalculator({
     try {
       let formula = config.formula
       Object.entries(values).forEach(([key, value]) => {
-        const numValue = typeof value === 'string' ? 
-          (config.parameters.find(p => p.id === key)?.options?.findIndex(o => o.value === value) || 0) + 1 : 
-          value
-        formula = formula.replace(new RegExp(`\\$${key}`, 'g'), String(numValue))
+        formula = formula.replace(new RegExp(key, 'g'), String(value))
       })
       
       const sanitized = formula.replace(/[^0-9+\-*/().]/g, '')
@@ -74,8 +87,8 @@ function SingleCalculator({
     return new Intl.NumberFormat("ru-RU").format(price)
   }
 
-  const renderParameter = (param: CalculatorParameter) => {
-    const value = values[param.id]
+  const renderParameter = (param: CalculatorVariable) => {
+    const value = values[param.name] ?? param.defaultValue
     
     switch (param.type) {
       case "slider":
@@ -90,20 +103,40 @@ function SingleCalculator({
               </span>
             </div>
             <Slider
-              value={[Number(value) || param.min || 0]}
-              onValueChange={([v]) => updateValue(param.id, v)}
+              value={[value]}
+              onValueChange={([v]) => updateValue(param.name, v)}
               min={param.min || 0}
               max={param.max || 100}
               step={param.step || 1}
               className="w-full"
             />
-            {param.marks && (
-              <div className="flex justify-between text-xs text-muted-foreground">
-                {param.marks.map(mark => (
-                  <span key={mark.value}>{mark.label}</span>
-                ))}
-              </div>
-            )}
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{param.min || 0}{param.unit || ""}</span>
+              <span>{param.max || 100}{param.unit || ""}</span>
+            </div>
+          </div>
+        )
+      
+      case "number":
+        return (
+          <div key={param.id} className="flex flex-col gap-2">
+            <Label className="text-sm font-medium text-foreground">
+              {param.label}
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={value}
+                onChange={(e) => updateValue(param.name, parseFloat(e.target.value) || 0)}
+                min={param.min}
+                max={param.max}
+                step={param.step || 1}
+                className="rounded-full border-border"
+              />
+              {param.unit && (
+                <span className="text-sm text-muted-foreground">{param.unit}</span>
+              )}
+            </div>
           </div>
         )
       
@@ -115,18 +148,18 @@ function SingleCalculator({
             </Label>
             <RadioGroup 
               value={String(value)} 
-              onValueChange={(v) => updateValue(param.id, v)}
+              onValueChange={(v) => updateValue(param.name, parseFloat(v))}
               className="flex flex-wrap gap-0 rounded-full border border-border bg-background p-1"
             >
-              {param.options?.map(option => (
-                <div key={option.value} className="flex items-center">
+              {param.options?.map((option, idx) => (
+                <div key={`${param.id}-opt-${idx}`} className="flex items-center">
                   <RadioGroupItem 
-                    value={option.value} 
-                    id={`${param.id}-${option.value}`}
+                    value={String(option.value)} 
+                    id={`${param.id}-opt-${idx}`}
                     className="peer sr-only"
                   />
                   <Label
-                    htmlFor={`${param.id}-${option.value}`}
+                    htmlFor={`${param.id}-opt-${idx}`}
                     className="cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors peer-data-[state=checked]:bg-foreground peer-data-[state=checked]:text-background hover:bg-muted"
                   >
                     {option.label}
@@ -138,23 +171,48 @@ function SingleCalculator({
         )
       
       case "select":
+        // Find current selected index based on value
+        const selectedIdx = param.options?.findIndex(o => o.value === value) ?? 0
         return (
           <div key={param.id} className="flex flex-col gap-2">
             <Label className="text-sm font-medium text-foreground">
               {param.label}
             </Label>
-            <Select value={String(value)} onValueChange={(v) => updateValue(param.id, v)}>
+            <Select 
+              value={`${selectedIdx}`}
+              onValueChange={(v) => {
+                const idx = parseInt(v, 10)
+                const optionValue = param.options?.[idx]?.value ?? 0
+                updateValue(param.name, optionValue)
+              }}
+            >
               <SelectTrigger className="rounded-full border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {param.options?.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
+                {param.options?.map((option, idx) => (
+                  <SelectItem key={`${param.id}-opt-${idx}`} value={`${idx}`}>
                     {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )
+      
+      case "checkbox":
+        const isChecked = value === (param.checkedValue ?? 1)
+        return (
+          <div key={param.id} className="flex items-center justify-between gap-4 rounded-full border border-border px-4 py-3">
+            <Label className="text-sm font-medium text-foreground">
+              {param.label}
+            </Label>
+            <Switch
+              checked={isChecked}
+              onCheckedChange={(checked) => {
+                updateValue(param.name, checked ? (param.checkedValue ?? 1) : (param.uncheckedValue ?? 0))
+              }}
+            />
           </div>
         )
       
@@ -175,15 +233,17 @@ function SingleCalculator({
             initialData={{
               variables: config.parameters.map(p => ({
                 id: p.id,
-                name: p.id,
+                name: p.name,
                 label: p.label,
-                type: p.type === "radio" ? "select" : p.type,
-                defaultValue: typeof p.defaultValue === "number" ? p.defaultValue : 1,
+                type: p.type,
+                defaultValue: p.defaultValue,
                 min: p.min,
                 max: p.max,
                 step: p.step,
                 unit: p.unit,
-                options: p.options?.map(o => ({ value: Number(o.value), label: o.label }))
+                options: p.options,
+                checkedValue: p.checkedValue,
+                uncheckedValue: p.uncheckedValue
               })),
               formula: config.formula,
               currency: config.currency
@@ -221,10 +281,17 @@ function SingleCalculator({
 }
 
 export function CalculatorCard({ artistId = "1", isOwner, onEdit, onDelete }: CalculatorCardProps) {
-  const { data: config, isLoading } = useSWR<CalculatorConfig>(
+  const { data, isLoading } = useSWR<{ formula: string; parameters: CalculatorVariable[]; currency: string }>(
     `/api/calculator/${artistId}`,
     fetcher
   )
+
+  // Convert API response to internal config format
+  const config: CalculatorConfig | null = data ? {
+    formula: data.formula,
+    parameters: data.parameters,
+    currency: data.currency
+  } : null
 
   if (isLoading) {
     return (
@@ -256,8 +323,6 @@ export function CalculatorCard({ artistId = "1", isOwner, onEdit, onDelete }: Ca
     )
   }
 
-  // For now, we display single calculator. In real app with multiple calculators,
-  // we would use tabs to switch between them
   return (
     <SingleCalculator 
       config={config} 
