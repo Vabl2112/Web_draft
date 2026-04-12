@@ -42,11 +42,14 @@ function SingleCalculator({
   onDelete?: () => void
 }) {
   const [values, setValues] = useState<Record<string, number>>({})
+  const [inputValues, setInputValues] = useState<Record<string, string>>({}) // Raw input strings for validation
+  const [errors, setErrors] = useState<Record<string, string>>({}) // Validation errors
 
   // Initialize values when config loads
   useEffect(() => {
     if (config?.parameters) {
       const initialValues: Record<string, number> = {}
+      const initialInputValues: Record<string, string> = {}
       config.parameters.forEach(param => {
         if (param.type === "select" || param.type === "radio") {
           // Use first option's value as default
@@ -56,14 +59,59 @@ function SingleCalculator({
           initialValues[param.name] = param.uncheckedValue ?? 0
         } else {
           initialValues[param.name] = param.defaultValue
+          initialInputValues[param.name] = String(param.defaultValue)
         }
       })
       setValues(initialValues)
+      setInputValues(initialInputValues)
+      setErrors({})
     }
   }, [config])
 
   const updateValue = (name: string, value: number) => {
     setValues(prev => ({ ...prev, [name]: value }))
+  }
+
+  // Validate and update number input
+  const handleNumberInput = (name: string, rawValue: string, min?: number, max?: number) => {
+    setInputValues(prev => ({ ...prev, [name]: rawValue }))
+    
+    const trimmed = rawValue.trim()
+    
+    // Check if it's a valid number format (no spaces, valid characters)
+    if (trimmed === "") {
+      setErrors(prev => ({ ...prev, [name]: "" }))
+      updateValue(name, 0)
+      return
+    }
+    
+    // Check for invalid characters or format (like "500 0" or "50a")
+    if (!/^-?\d*\.?\d*$/.test(trimmed)) {
+      setErrors(prev => ({ ...prev, [name]: "Некорректное число" }))
+      return
+    }
+    
+    const numValue = parseFloat(trimmed)
+    
+    if (isNaN(numValue)) {
+      setErrors(prev => ({ ...prev, [name]: "Некорректное число" }))
+      return
+    }
+    
+    // Range validation
+    if (min !== undefined && numValue < min) {
+      setErrors(prev => ({ ...prev, [name]: `Минимум: ${min}` }))
+      return
+    }
+    
+    if (max !== undefined && numValue > max) {
+      setErrors(prev => ({ ...prev, [name]: `Максимум: ${max}` }))
+      return
+    }
+    
+    // Valid number
+    setErrors(prev => ({ ...prev, [name]: "" }))
+    updateValue(name, numValue)
   }
 
   const calculatedPrice = useMemo(() => {
@@ -118,21 +166,26 @@ function SingleCalculator({
         )
       
       case "number":
+        const numError = errors[param.name]
+        const numInputValue = inputValues[param.name] ?? String(value)
         return (
           <div key={param.id} className="flex flex-col gap-2">
             <Label className="text-sm font-medium text-foreground">
               {param.label}
             </Label>
             <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                value={value}
-                onChange={(e) => updateValue(param.name, parseFloat(e.target.value) || 0)}
-                min={param.min}
-                max={param.max}
-                step={param.step || 1}
-                className="rounded-full border-border"
-              />
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={numInputValue}
+                  onChange={(e) => handleNumberInput(param.name, e.target.value, param.min, param.max)}
+                  className={`rounded-full border-border ${numError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+                {numError && (
+                  <p className="mt-1 text-xs text-destructive">{numError}</p>
+                )}
+              </div>
               {param.unit && (
                 <span className="text-sm text-muted-foreground">{param.unit}</span>
               )}
