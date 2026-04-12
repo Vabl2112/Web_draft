@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -19,7 +19,8 @@ import {
   Minus,
   Plus,
   Check,
-  MessageCircle
+  MessageCircle,
+  Loader2
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -28,129 +29,105 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 interface ProductDetailPageProps {
   productId: string
 }
 
-// Mock data - in real app this would come from API
-const mockProduct = {
-  id: "1",
-  title: "Футболка с авторским принтом EGG",
-  description: "Стильная футболка с уникальным авторским принтом от тату-мастера. Высококачественный хлопок, современный крой.",
-  fullDescription: `Эксклюзивная футболка с авторским принтом от известного тату-мастера.
-
-Особенности:
-• 100% хлопок высшего качества
-• Плотность ткани: 180 г/м²
-• Современный прямой крой
-• Двойная отстрочка на швах
-• Усиленный воротник
-
-Уход:
-• Машинная стирка при 30°C
-• Не отбеливать
-• Гладить при средней температуре
-• Не сушить в барабане
-
-Принт выполнен методом прямой печати, устойчив к многочисленным стиркам без потери качества.`,
-  price: 2500,
-  originalPrice: 3500,
-  images: [
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=800&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&h=800&fit=crop"
-  ],
-  category: "Одежда",
-  inStock: true,
-  stockCount: 15,
-  rating: 4.8,
-  reviewsCount: 127,
-  ordersCount: 456,
-  sku: "TSH-EGG-001",
+interface Product {
+  id: string
+  title: string
+  description: string
+  fullDescription: string
+  price: number
+  originalPrice: number | null
+  images: string[]
+  category: string
+  inStock: boolean
+  stockCount: number
+  rating: number
+  reviewsCount: number
+  ordersCount: number
+  sku: string
   seller: {
-    id: "1",
-    name: "Алексей Волков",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-    title: "Тату-мастер",
-    rating: 4.9,
-    productsCount: 23
-  },
-  sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-  colors: [
-    { name: "Черный", value: "#000000" },
-    { name: "Белый", value: "#FFFFFF" },
-    { name: "Серый", value: "#6B7280" }
-  ],
-  specifications: [
-    { label: "Материал", value: "100% хлопок" },
-    { label: "Плотность", value: "180 г/м²" },
-    { label: "Страна производства", value: "Россия" },
-    { label: "Тип принта", value: "Прямая печать" }
-  ],
-  reviews: [
-    {
-      id: "1",
-      author: "Мария К.",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
-      rating: 5,
-      date: "2 дня назад",
-      text: "Отличная футболка! Качество на высоте, принт яркий и четкий. Заказывала размер М, села идеально.",
-      helpful: 12
-    },
-    {
-      id: "2",
-      author: "Дмитрий С.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-      rating: 5,
-      date: "1 неделю назад",
-      text: "Уже третья футболка от этого мастера. Качество всегда отменное, доставка быстрая.",
-      helpful: 8
-    },
-    {
-      id: "3",
-      author: "Анна П.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-      rating: 4,
-      date: "2 недели назад",
-      text: "Хорошая футболка, но немного большемерит. Советую брать на размер меньше.",
-      helpful: 15
-    }
-  ]
+    id: string
+    name: string
+    avatar: string
+    title: string
+    rating: number
+    productsCount: number
+  }
+  sizes: string[] | null
+  colors: { name: string; value: string }[] | null
+  specifications: { label: string; value: string }[]
+  reviews: {
+    id: string
+    author: string
+    avatar: string
+    rating: number
+    date: string
+    text: string
+    helpful: number
+  }[]
 }
 
 export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const router = useRouter()
+  const [product, setProduct] = useState<Product | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
-  const [selectedColor, setSelectedColor] = useState(mockProduct.colors[0])
+  const [selectedColor, setSelectedColor] = useState<{ name: string; value: string } | null>(null)
 
-  // In real app, fetch product data by productId
-  const product = mockProduct
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setIsLoading(true)
+        const response = await fetch(`/api/products/${productId}`)
+        if (!response.ok) {
+          throw new Error("Товар не найден")
+        }
+        const data = await response.json()
+        setProduct(data.product)
+        if (data.product.colors?.length) {
+          setSelectedColor(data.product.colors[0])
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Ошибка загрузки")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchProduct()
+  }, [productId])
   
-  const discount = product.originalPrice
+  const discount = product?.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
   const goToPrevImage = () => {
+    if (!product) return
     setCurrentImageIndex((prev) => 
       prev === 0 ? product.images.length - 1 : prev - 1
     )
   }
 
   const goToNextImage = () => {
+    if (!product) return
     setCurrentImageIndex((prev) => 
       prev === product.images.length - 1 ? 0 : prev + 1
     )
   }
 
   const incrementQuantity = () => {
-    if (quantity < product.stockCount) {
+    if (product && quantity < product.stockCount) {
       setQuantity(q => q + 1)
     }
   }
@@ -159,6 +136,60 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     if (quantity > 1) {
       setQuantity(q => q - 1)
     }
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-6xl px-4 py-6">
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+            <ArrowLeft className="size-4" />
+            Назад
+          </Button>
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="space-y-3">
+              <Skeleton className="aspect-square w-full rounded-2xl" />
+              <div className="flex gap-2">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="size-20 rounded-lg" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-6xl px-4 py-6">
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+            <ArrowLeft className="size-4" />
+            Назад
+          </Button>
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-lg text-muted-foreground">{error || "Товар не найден"}</p>
+            <Button className="mt-4" onClick={() => router.push("/products")}>
+              Вернуться к товарам
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -413,7 +444,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </div>
 
             {!selectedSize && (
-              <p className="text-sm text-muted-foreground">Выберите размер для добавления в корзину</p>
+              <p className="text-sm text-muted-foreground">Выбери��е размер для добавления в корзину</p>
             )}
 
             {/* Delivery Info */}
