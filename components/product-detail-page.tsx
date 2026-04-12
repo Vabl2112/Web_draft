@@ -144,9 +144,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-6">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push("/products")}>
             <ArrowLeft className="size-4" />
-            Назад
+            Назад к товарам
           </Button>
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="space-y-3">
@@ -176,9 +176,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-6">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push("/products")}>
             <ArrowLeft className="size-4" />
-            Назад
+            Назад к товарам
           </Button>
           <div className="flex flex-col items-center justify-center py-20">
             <p className="text-lg text-muted-foreground">{error || "Товар не найден"}</p>
@@ -201,10 +201,10 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <Button 
           variant="ghost" 
           className="mb-4 gap-2"
-          onClick={() => router.back()}
+          onClick={() => router.push("/products")}
         >
           <ArrowLeft className="size-4" />
-          Назад
+          Назад к товарам
         </Button>
 
         <div className="grid gap-8 lg:grid-cols-2">
