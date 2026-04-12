@@ -141,20 +141,26 @@ function SingleCalculator({
         )
       
       case "radio":
+        // Find current selected index based on value
+        const radioSelectedIdx = param.options?.findIndex(o => o.value === value) ?? 0
         return (
           <div key={param.id} className="flex flex-col gap-2">
             <Label className="text-sm font-medium text-foreground">
               {param.label}
             </Label>
             <RadioGroup 
-              value={String(value)} 
-              onValueChange={(v) => updateValue(param.name, parseFloat(v))}
+              value={`${radioSelectedIdx}`}
+              onValueChange={(v) => {
+                const idx = parseInt(v, 10)
+                const optionValue = param.options?.[idx]?.value ?? 0
+                updateValue(param.name, optionValue)
+              }}
               className="flex flex-wrap gap-0 rounded-full border border-border bg-background p-1"
             >
               {param.options?.map((option, idx) => (
                 <div key={`${param.id}-opt-${idx}`} className="flex items-center">
                   <RadioGroupItem 
-                    value={String(option.value)} 
+                    value={`${idx}`}
                     id={`${param.id}-opt-${idx}`}
                     className="peer sr-only"
                   />

@@ -84,6 +84,45 @@ export function CalculatorEditor({
   })
   const [formula, setFormula] = useState(initialData?.formula || "")
   const [currency, setCurrency] = useState(initialData?.currency || "₽")
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  // Drag and Drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+    setDragOverIndex(index)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      return
+    }
+    
+    const newVariables = [...variables]
+    const [draggedItem] = newVariables.splice(draggedIndex, 1)
+    newVariables.splice(dropIndex, 0, draggedItem)
+    setVariables(newVariables)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
 
   const generateVarName = () => {
     const usedNames = variables.map(v => v.name)
@@ -297,11 +336,25 @@ export function CalculatorEditor({
                   open={variable.isExpanded}
                   onOpenChange={(open) => updateVariable(variable.id, { isExpanded: open })}
                 >
-                  <div className="rounded-lg border border-border">
+                  <div 
+                    className={`rounded-lg border transition-all ${
+                      dragOverIndex === index 
+                        ? "border-primary border-2 bg-primary/5" 
+                        : draggedIndex === index 
+                          ? "opacity-50 border-dashed border-muted-foreground" 
+                          : "border-border"
+                    }`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                  >
                     {/* Header */}
                     <CollapsibleTrigger asChild>
                       <div className="flex cursor-pointer items-center gap-3 p-3 hover:bg-muted/50">
-                        <GripVertical className="size-4 text-muted-foreground" />
+                        <GripVertical className="size-4 cursor-grab text-muted-foreground active:cursor-grabbing" />
                         <div className="flex size-8 shrink-0 items-center justify-center rounded bg-primary font-mono font-bold text-primary-foreground">
                           {variable.name}
                         </div>
@@ -391,25 +444,49 @@ export function CalculatorEditor({
                             <div className="space-y-2">
                               <Label className="text-xs">Мин</Label>
                               <Input
-                                type="number"
-                                value={variable.min || 1}
-                                onChange={(e) => updateVariable(variable.id, { min: parseFloat(e.target.value) || 1 })}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="1"
+                                value={variable.min === 0 ? "" : variable.min}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim()
+                                  if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                    updateVariable(variable.id, { min: val === "" ? 0 : parseFloat(val) })
+                                  }
+                                }}
+                                className={variable.min === 0 ? "text-muted-foreground/50" : ""}
                               />
                             </div>
                             <div className="space-y-2">
                               <Label className="text-xs">Макс</Label>
                               <Input
-                                type="number"
-                                value={variable.max || 100}
-                                onChange={(e) => updateVariable(variable.id, { max: parseFloat(e.target.value) || 100 })}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="100"
+                                value={variable.max === 0 ? "" : variable.max}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim()
+                                  if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                    updateVariable(variable.id, { max: val === "" ? 0 : parseFloat(val) })
+                                  }
+                                }}
+                                className={variable.max === 0 ? "text-muted-foreground/50" : ""}
                               />
                             </div>
                             <div className="space-y-2">
                               <Label className="text-xs">По умолч.</Label>
                               <Input
-                                type="number"
-                                value={variable.defaultValue}
-                                onChange={(e) => updateVariable(variable.id, { defaultValue: parseFloat(e.target.value) || 0 })}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="0"
+                                value={variable.defaultValue === 0 ? "" : variable.defaultValue}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim()
+                                  if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                    updateVariable(variable.id, { defaultValue: val === "" ? 0 : parseFloat(val) })
+                                  }
+                                }}
+                                className={variable.defaultValue === 0 ? "text-muted-foreground/50" : ""}
                               />
                             </div>
                             <div className="space-y-2">
@@ -445,32 +522,43 @@ export function CalculatorEditor({
                             )}
                             
                             <div className="space-y-2">
-                              {variable.options.map((option, optIndex) => (
-                                <div key={option.id} className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground w-4">{optIndex + 1}.</span>
-                                  <Input
-                                    placeholder="Название (напр. Реализм)"
-                                    value={option.label}
-                                    onChange={(e) => updateOption(variable.id, option.id, { label: e.target.value })}
-                                    className="flex-1"
-                                  />
-                                  <Input
-                                    type="number"
-                                    placeholder="Вес"
-                                    value={option.value}
-                                    onChange={(e) => updateOption(variable.id, option.id, { value: parseFloat(e.target.value) || 0 })}
-                                    className="w-24"
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="shrink-0 size-8 text-muted-foreground hover:text-destructive"
-                                    onClick={() => removeOption(variable.id, option.id)}
-                                  >
-                                    <Trash2 className="size-3" />
-                                  </Button>
-                                </div>
-                              ))}
+                                              {variable.options.map((option, optIndex) => (
+                                                <div key={option.id} className="flex items-center gap-2">
+                                                  <span className="text-xs text-muted-foreground w-4">{optIndex + 1}.</span>
+                                                  <Input
+                                                    placeholder="Название (напр. Реализм)"
+                                                    value={option.label}
+                                                    onChange={(e) => updateOption(variable.id, option.id, { label: e.target.value })}
+                                                    className="flex-1"
+                                                  />
+                                                  <div className="relative w-24">
+                                                    <Input
+                                                      type="text"
+                                                      inputMode="numeric"
+                                                      placeholder="0"
+                                                      value={option.value === 0 ? "" : option.value}
+                                                      onChange={(e) => {
+                                                        const val = e.target.value.trim()
+                                                        // Only allow valid numbers
+                                                        if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                                          updateOption(variable.id, option.id, { 
+                                                            value: val === "" ? 0 : parseFloat(val) 
+                                                          })
+                                                        }
+                                                      }}
+                                                      className={option.value === 0 ? "text-muted-foreground/50" : ""}
+                                                    />
+                                                  </div>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="shrink-0 size-8 text-muted-foreground hover:text-destructive"
+                                                    onClick={() => removeOption(variable.id, option.id)}
+                                                  >
+                                                    <Trash2 className="size-3" />
+                                                  </Button>
+                                                </div>
+                                              ))}
                             </div>
                             
                             <p className="text-xs text-muted-foreground">
@@ -484,17 +572,33 @@ export function CalculatorEditor({
                             <div className="space-y-2">
                               <Label className="text-xs">Значение если выбрано</Label>
                               <Input
-                                type="number"
-                                value={variable.checkedValue || 1}
-                                onChange={(e) => updateVariable(variable.id, { checkedValue: parseFloat(e.target.value) || 0 })}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="0"
+                                value={variable.checkedValue === 0 ? "" : variable.checkedValue}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim()
+                                  if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                    updateVariable(variable.id, { checkedValue: val === "" ? 0 : parseFloat(val) })
+                                  }
+                                }}
+                                className={variable.checkedValue === 0 ? "text-muted-foreground/50" : ""}
                               />
                             </div>
                             <div className="space-y-2">
                               <Label className="text-xs">Значение если не выбрано</Label>
                               <Input
-                                type="number"
-                                value={variable.uncheckedValue || 0}
-                                onChange={(e) => updateVariable(variable.id, { uncheckedValue: parseFloat(e.target.value) || 0 })}
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="0"
+                                value={variable.uncheckedValue === 0 ? "" : variable.uncheckedValue}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim()
+                                  if (val === "" || /^-?\d*\.?\d*$/.test(val)) {
+                                    updateVariable(variable.id, { uncheckedValue: val === "" ? 0 : parseFloat(val) })
+                                  }
+                                }}
+                                className={variable.uncheckedValue === 0 ? "text-muted-foreground/50" : ""}
                               />
                             </div>
                             <p className="col-span-2 text-xs text-muted-foreground">
