@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -8,10 +8,32 @@ import './globals.css'
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#171717' },
+  ],
+}
+
 export const metadata: Metadata = {
-  title: 'EGG - Тату-студия',
-  description: 'Лучшие тату-мастера, услуги и товары для ухода за татуировками',
+  title: 'EGG - Платформа для творческих людей',
+  description: 'Маркетплейс для художников, мастеров и ремесленников. Продавайте свои работы, услуги и товары ручной работы',
   generator: 'v0.app',
+  formatDetection: {
+    telephone: true,
+    email: true,
+    address: true,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'EGG',
+  },
   icons: {
     icon: [
       {

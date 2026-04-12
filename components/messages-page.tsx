@@ -327,7 +327,7 @@ export function MessagesPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
 
-      <main className="flex flex-1">
+      <main className="flex flex-1 pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex w-full max-w-7xl flex-1">
           {/* Conversations List */}
           {showChatList && (
@@ -510,8 +510,8 @@ export function MessagesPage() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Input */}
-                  <div className="border-t border-border p-4">
+                  {/* Input - with safe area for mobile keyboards */}
+                  <div className="border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                     <div className="flex items-end gap-2">
                       <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground">
                         <Paperclip className="size-5" />

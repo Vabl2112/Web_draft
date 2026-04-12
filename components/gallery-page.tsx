@@ -17,7 +17,7 @@ interface GalleryResponse {
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function GalleryPage() {
-  const [activeCategory, setActiveCategory] = useState("tattoo")
+  const [activeCategory, setActiveCategory] = useState("painting")
   const [activeSubFilter, setActiveSubFilter] = useState<string | null>(null)
 
   const apiUrl = `/api/gallery?category=${activeCategory}${activeSubFilter ? `&subCategory=${activeSubFilter}` : ""}`
@@ -32,9 +32,9 @@ export function GalleryPage() {
       
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-foreground">Фотогалерея</h1>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Галерея работ</h1>
           <p className="text-muted-foreground">
-            Найдите вдохновение среди работ лучших мастеров
+            Вдохновляйтесь работами художников, мастеров и ремесленников
           </p>
         </div>
 

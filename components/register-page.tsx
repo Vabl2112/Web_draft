@@ -67,7 +67,7 @@ export function RegisterPage() {
           </h2>
           
           <p className="mb-12 max-w-md text-center text-lg text-background/70">
-            Создайте аккаунт и откройте для себя мир профессиональных тату-мастеров
+            Создайте аккаунт и откройте для себя мир творческих людей и уникальных работ
           </p>
 
           {/* Features */}
@@ -77,8 +77,8 @@ export function RegisterPage() {
                 <Check className="size-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Персональные рекомендации</h3>
-                <p className="text-sm text-background/70">Находите мастеров по вашему вкусу и стилю</p>
+                <h3 className="font-semibold">Уникальные работы</h3>
+                <p className="text-sm text-background/70">Картины, керамика, украшения, мебель и многое другое</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -86,8 +86,8 @@ export function RegisterPage() {
                 <Check className="size-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Удобная запись</h3>
-                <p className="text-sm text-background/70">Записывайтесь на сеансы в пару кликов</p>
+                <h3 className="font-semibold">Прямой контакт</h3>
+                <p className="text-sm text-background/70">Общайтесь с мастерами и заказывайте напрямую</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -96,7 +96,7 @@ export function RegisterPage() {
               </div>
               <div>
                 <h3 className="font-semibold">Сохраняйте избранное</h3>
-                <p className="text-sm text-background/70">Создавайте коллекции любимых работ</p>
+                <p className="text-sm text-background/70">Создавайте коллекции любимых работ и мастеров</p>
               </div>
             </div>
           </div>
