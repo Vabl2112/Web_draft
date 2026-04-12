@@ -231,18 +231,37 @@ export function CalculatorEditor({
     setIsOpen(false)
   }
 
-  // Validate formula for invalid number formats like "50 0"
+  // Validate formula for invalid characters and number formats
   const validateFormula = (formulaStr: string): { valid: boolean; error?: string } => {
+    // Get all valid variable names
+    const validVarNames = variables.map(v => v.name)
+    
+    // Create a copy to check, replacing valid variable names with placeholder
+    let checkStr = formulaStr
+    validVarNames.forEach(name => {
+      if (name) {
+        checkStr = checkStr.replace(new RegExp(name, 'g'), '0')
+      }
+    })
+    
+    // Check for invalid characters (anything except digits, operators, parentheses, dots, spaces)
+    const invalidChars = checkStr.match(/[^0-9+\-*/().\s]/g)
+    if (invalidChars) {
+      const uniqueInvalid = [...new Set(invalidChars)]
+      return { valid: false, error: `Недопустимые символы: "${uniqueInvalid.join(", ")}"` }
+    }
+    
     // Check for invalid number patterns (numbers with spaces like "50 0")
     // Match: digit, then space, then digit (but not separated by operators)
-    if (/\d\s+\d/.test(formulaStr)) {
+    if (/\d\s+\d/.test(checkStr)) {
       // Find the exact invalid pattern for error message
-      const match = formulaStr.match(/\d+\s+\d+/)
+      const match = checkStr.match(/\d+\s+\d+/)
       if (match) {
         return { valid: false, error: `Некорректное число: "${match[0]}"` }
       }
       return { valid: false, error: "Некорректный формат числа" }
     }
+    
     return { valid: true }
   }
 
