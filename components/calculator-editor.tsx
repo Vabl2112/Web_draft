@@ -10,7 +10,8 @@ import {
   FunctionSquare,
   GripVertical,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Info
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -692,34 +693,49 @@ export function CalculatorEditor({
                 </div>
               </div>
               
-              {/* Variable mapping table */}
+              {/* Variable mapping table with explanation */}
               {variables.length > 0 && (
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                  <p className="text-xs text-muted-foreground mb-2">Значения переменных в предпросмотре:</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      Для предпросмотра используются: <strong>начальное значение</strong> для слайдеров и чисел, 
+                      <strong> первый вариант</strong> для списков выбора, <strong>включённое состояние</strong> для чекбоксов.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {variables.map(v => {
                       let displayValue: string | number = v.defaultValue
+                      let valueSource = ""
                       let valueDescription = ""
                       
                       if ((v.type === "select" || v.type === "radio") && v.options.length > 0) {
                         displayValue = v.options[0].value
-                        valueDescription = v.options[0].label ? ` (${v.options[0].label})` : ""
+                        valueSource = "1-й вариант"
+                        valueDescription = v.options[0].label ? `"${v.options[0].label}"` : ""
                       } else if (v.type === "checkbox") {
                         displayValue = v.checkedValue || 1
-                        valueDescription = " (вкл)"
-                      } else if (v.unit) {
-                        valueDescription = ` ${v.unit}`
+                        valueSource = "включён"
+                      } else if (v.type === "slider" || v.type === "number") {
+                        valueSource = "начальное"
+                        valueDescription = v.unit ? `${v.unit}` : ""
                       }
                       
                       return (
-                        <div key={v.id} className="flex items-center gap-2 text-sm">
+                        <div key={v.id} className="flex items-center gap-2 text-sm bg-background/50 rounded px-2 py-1.5">
                           <Badge variant="secondary" className="font-mono font-bold shrink-0">
                             {v.name}
                           </Badge>
                           <span className="text-muted-foreground">=</span>
-                          <span className="font-medium truncate">
-                            {displayValue}{valueDescription}
+                          <span className="font-medium">
+                            {displayValue}
+                            {valueDescription && <span className="text-muted-foreground ml-1">{valueDescription}</span>}
                           </span>
+                          {valueSource && (
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              ({valueSource})
+                            </span>
+                          )}
                         </div>
                       )
                     })}
