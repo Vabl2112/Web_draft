@@ -134,11 +134,11 @@ export function PhotoDetailModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+    <Dialog open={isOpen && !!photo} onOpenChange={() => onClose()}>
       <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row" showCloseButton={false}>
-        <DialogTitle className="sr-only">{photo.title}</DialogTitle>
+        <DialogTitle className="sr-only">{photo?.title || "Фото"}</DialogTitle>
         <DialogDescription className="sr-only">
-          {photo.description || `Фото работы от ${photo.author}`}
+          {photo?.description || `Фото работы от ${photo?.author || "мастера"}`}
         </DialogDescription>
         
           {/* Image Section */}
