@@ -4,6 +4,7 @@ import { useState } from "react"
 import useSWR from "swr"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { 
   Search, 
   SlidersHorizontal, 
@@ -66,14 +67,22 @@ interface Category {
 }
 
 function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid" | "list" }) {
+  const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
+  const handleCardClick = () => {
+    router.push(`/product/${product.id}`)
+  }
+
   if (viewMode === "list") {
     return (
-      <div className="group flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-lg sm:gap-6">
+      <div 
+        className="group flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-lg sm:gap-6 cursor-pointer"
+        onClick={handleCardClick}
+      >
         {/* Image */}
         <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-40">
           <Image
@@ -99,7 +108,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
               variant="ghost"
               size="icon"
               className="shrink-0 text-muted-foreground hover:text-destructive"
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsLiked(!isLiked)
+              }}
             >
               <Heart className={cn("size-5", isLiked && "fill-destructive text-destructive")} />
             </Button>
@@ -120,6 +132,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
           <Link
             href={`/master/${product.seller.id}`}
             className="mt-2 flex items-center gap-2 transition-opacity hover:opacity-80"
+            onClick={(e) => e.stopPropagation()}
           >
             <Avatar className="size-5">
               <AvatarImage src={product.seller.avatar} alt={product.seller.name} />
@@ -143,6 +156,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
             <Button 
               className="gap-2" 
               disabled={!product.inStock}
+              onClick={(e) => {
+                e.stopPropagation()
+                // Add to cart logic here
+              }}
             >
               <ShoppingCart className="size-4" />
               <span className="hidden sm:inline">В корзину</span>
@@ -154,7 +171,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
   }
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg">
+    <div 
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <Image
@@ -177,7 +197,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
           variant="secondary"
           size="icon"
           className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsLiked(!isLiked)
+          }}
         >
           <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
         </Button>
@@ -212,6 +235,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
         <Link
           href={`/master/${product.seller.id}`}
           className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
+          onClick={(e) => e.stopPropagation()}
         >
           <Avatar className="size-6">
             <AvatarImage src={product.seller.avatar} alt={product.seller.name} />
@@ -224,6 +248,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
         <Button 
           className="mt-4 w-full gap-2" 
           disabled={!product.inStock}
+          onClick={(e) => {
+            e.stopPropagation()
+            // Add to cart logic here
+          }}
         >
           <ShoppingCart className="size-4" />
           В корзину
