@@ -135,7 +135,7 @@ export function PhotoDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row">
+      <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row" showCloseButton={false}>
         <DialogTitle className="sr-only">{photo.title}</DialogTitle>
         <DialogDescription className="sr-only">
           {photo.description || `Фото работы от ${photo.author}`}
@@ -254,18 +254,30 @@ export function PhotoDetailModal({
                 <span className="font-semibold hover:underline">{photo.author}</span>
               </Link>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="size-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Пожаловаться</DropdownMenuItem>
-                  <DropdownMenuItem>Копировать ссылку</DropdownMenuItem>
-                  <DropdownMenuItem>Поделиться</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="size-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Пожаловаться</DropdownMenuItem>
+                    <DropdownMenuItem>Копировать ссылку</DropdownMenuItem>
+                    <DropdownMenuItem>Поделиться</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                {/* Close button - visible on desktop, hidden on mobile (mobile has one on image) */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden md:flex"
+                  onClick={onClose}
+                >
+                  <X className="size-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Comments Section */}
