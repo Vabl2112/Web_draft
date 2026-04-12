@@ -1,21 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import useSWR from "swr"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { 
   Search, 
-  SlidersHorizontal, 
   ShoppingCart, 
   Star, 
   Heart,
   Grid3X3,
   LayoutList,
-  ChevronRight,
-  X,
-  Filter
+  X
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -25,21 +22,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet"
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { SmartFiltersDesktop, SmartFiltersMobile, ActiveFiltersBadges } from "@/components/smart-filters"
+import { productsFiltersConfig } from "@/lib/filters-config"
 import { cn } from "@/lib/utils"
+import type { ActiveFilters, FiltersConfig } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -59,11 +51,6 @@ interface Product {
     name: string
     avatar: string
   }
-}
-
-interface Category {
-  id: string
-  name: string
 }
 
 function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid" | "list" }) {
@@ -261,62 +248,100 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
   )
 }
 
-function CategoryCard({ category, isActive, onClick }: { 
-  category: Category
-  isActive: boolean
-  onClick: () => void 
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all",
-        isActive 
-          ? "border-foreground bg-foreground text-background" 
-          : "border-border bg-card text-foreground hover:border-foreground/30"
-      )}
-    >
-      <span className="font-medium">{category.name}</span>
-      <ChevronRight className={cn("size-4", isActive && "text-background")} />
-    </button>
-  )
-}
-
 export function ProductsPage() {
   const { data, isLoading } = useSWR("/api/products", fetcher)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceSort, setPriceSort] = useState("default")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [showInStockOnly, setShowInStockOnly] = useState(false)
+  const [filtersConfig, setFiltersConfig] = useState<FiltersConfig | null>(null)
+  const [isFiltersLoading, setIsFiltersLoading] = useState(true)
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
+    category: null,
+    subFilters: {},
+  })
 
-  const filteredProducts = data?.products
-    ?.filter((product: Product) => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
-      const matchesStock = !showInStockOnly || product.inStock
-      return matchesSearch && matchesCategory && matchesStock
-    })
-    ?.sort((a: Product, b: Product) => {
-      if (priceSort === "low") return a.price - b.price
-      if (priceSort === "high") return b.price - a.price
-      if (priceSort === "rating") return b.rating - a.rating
-      return 0
-    })
+  // Simulate fetching filters config from API
+  useEffect(() => {
+    const loadFilters = async () => {
+      setIsFiltersLoading(true)
+      // In production: const config = await fetchFiltersConfig("products")
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setFiltersConfig(productsFiltersConfig)
+      setIsFiltersLoading(false)
+    }
+    loadFilters()
+  }, [])
 
-  const activeFiltersCount = [
-    selectedCategory !== "all",
-    showInStockOnly,
-    priceSort !== "default"
-  ].filter(Boolean).length
+  // Filter products based on active filters
+  const filteredProducts = useMemo(() => {
+    if (!data?.products) return []
 
-  const clearFilters = () => {
-    setSelectedCategory("all")
-    setShowInStockOnly(false)
-    setPriceSort("default")
+    return data.products
+      .filter((product: Product) => {
+        // Search filter
+        const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        
+        // Category filter
+        let matchesCategory = true
+        if (activeFilters.category) {
+          const categoryMapping: Record<string, string[]> = {
+            "tattoo-care": ["уход", "тату", "care"],
+            "art-supplies": ["художественные", "краски", "кисти", "холст"],
+            "equipment": ["оборудование", "машинка", "игла"],
+            "jewelry": ["украшения", "пирсинг", "кольцо"],
+            "prints": ["принт", "постер", "стикер"],
+          }
+          const relevantCategories = categoryMapping[activeFilters.category] || []
+          matchesCategory = relevantCategories.some(cat => 
+            product.category.toLowerCase().includes(cat) ||
+            product.title.toLowerCase().includes(cat)
+          )
+        }
+
+        // Stock filter
+        let matchesStock = true
+        if (activeFilters.subFilters.availability) {
+          const availabilityFilter = activeFilters.subFilters.availability
+          const values = Array.isArray(availabilityFilter) ? availabilityFilter : [availabilityFilter]
+          if (values.includes("in-stock")) {
+            matchesStock = product.inStock
+          }
+        }
+
+        // Price range filter
+        let matchesPrice = true
+        if (activeFilters.subFilters["price-range"]) {
+          const priceRange = activeFilters.subFilters["price-range"] as string
+          const priceRanges: Record<string, [number, number]> = {
+            "0-1000": [0, 1000],
+            "1000-5000": [1000, 5000],
+            "5000-15000": [5000, 15000],
+            "15000+": [15000, Infinity],
+          }
+          if (priceRange !== "any" && priceRanges[priceRange]) {
+            const [min, max] = priceRanges[priceRange]
+            matchesPrice = product.price >= min && product.price <= max
+          }
+        }
+
+        return matchesSearch && matchesCategory && matchesStock && matchesPrice
+      })
+      .sort((a: Product, b: Product) => {
+        if (priceSort === "low") return a.price - b.price
+        if (priceSort === "high") return b.price - a.price
+        if (priceSort === "rating") return b.rating - a.rating
+        return 0
+      })
+  }, [data?.products, searchQuery, activeFilters, priceSort])
+
+  const clearAllFilters = () => {
     setSearchQuery("")
+    setActiveFilters({ category: null, subFilters: {} })
+    setPriceSort("default")
   }
+
+  const hasActiveFilters = activeFilters.category || Object.keys(activeFilters.subFilters).length > 0 || searchQuery
 
   return (
     <div className="min-h-screen bg-background">
@@ -336,58 +361,20 @@ export function ProductsPage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
           {/* Desktop Sidebar Filters */}
           <aside className="hidden w-64 shrink-0 lg:block">
-            <div className="sticky top-24 space-y-6">
-              {/* Categories */}
-              <div>
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Категории
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {data?.categories?.map((cat: Category) => (
-                    <CategoryCard
-                      key={cat.id}
-                      category={cat}
-                      isActive={selectedCategory === cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Stock Filter */}
-              <div>
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Наличие
-                </h3>
-                <label className="flex cursor-pointer items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={showInStockOnly}
-                    onChange={(e) => setShowInStockOnly(e.target.checked)}
-                    className="size-5 rounded border-border accent-foreground"
-                  />
-                  <span className="text-sm">Только в наличии</span>
-                </label>
-              </div>
-
-              {/* Clear Filters */}
-              {activeFiltersCount > 0 && (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={clearFilters}
-                >
-                  <X className="mr-2 size-4" />
-                  Сбросить фильтры
-                </Button>
-              )}
+            <div className="sticky top-24">
+              <SmartFiltersDesktop
+                config={filtersConfig}
+                isLoading={isFiltersLoading}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
             </div>
           </aside>
 
           {/* Main Content */}
           <div className="flex-1">
             {/* Search and Filters Bar */}
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
               {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -436,132 +423,25 @@ export function ProductsPage() {
                 </div>
 
                 {/* Mobile Filters */}
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="relative gap-2 lg:hidden">
-                      <Filter className="size-4" />
-                      <span className="hidden sm:inline">Фильтры</span>
-                      {activeFiltersCount > 0 && (
-                        <Badge className="absolute -right-2 -top-2 size-5 p-0 text-xs">
-                          {activeFiltersCount}
-                        </Badge>
-                      )}
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
-                    <SheetHeader className="pb-4">
-                      <div className="flex items-center justify-between">
-                        <SheetTitle>Фильтры</SheetTitle>
-                        {activeFiltersCount > 0 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-muted-foreground"
-                            onClick={clearFilters}
-                          >
-                            Сбросить
-                          </Button>
-                        )}
-                      </div>
-                    </SheetHeader>
-                    
-                    <div className="flex flex-col gap-6 overflow-y-auto pb-24">
-                      {/* Categories */}
-                      <div>
-                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                          Категории
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {data?.categories?.map((cat: Category) => (
-                            <button
-                              key={cat.id}
-                              onClick={() => setSelectedCategory(cat.id)}
-                              className={cn(
-                                "rounded-full border px-4 py-2 text-sm font-medium transition-all",
-                                selectedCategory === cat.id
-                                  ? "border-foreground bg-foreground text-background"
-                                  : "border-border text-foreground hover:border-foreground/30"
-                              )}
-                            >
-                              {cat.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Sort */}
-                      <div>
-                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                          Сортировка
-                        </h3>
-                        <Select value={priceSort} onValueChange={setPriceSort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Выберите сортировку" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="default">По умолчанию</SelectItem>
-                            <SelectItem value="low">Сначала дешевле</SelectItem>
-                            <SelectItem value="high">Сначала дороже</SelectItem>
-                            <SelectItem value="rating">По рейтингу</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Stock */}
-                      <div>
-                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                          Наличие
-                        </h3>
-                        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-4">
-                          <input
-                            type="checkbox"
-                            checked={showInStockOnly}
-                            onChange={(e) => setShowInStockOnly(e.target.checked)}
-                            className="size-5 rounded border-border accent-foreground"
-                          />
-                          <span>Только в наличии</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Apply Button */}
-                    <div className="absolute inset-x-0 bottom-0 border-t border-border bg-background p-4">
-                      <SheetClose asChild>
-                        <Button className="w-full" size="lg">
-                          Применить фильтры
-                        </Button>
-                      </SheetClose>
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                <div className="lg:hidden">
+                  <SmartFiltersMobile
+                    config={filtersConfig}
+                    isLoading={isFiltersLoading}
+                    activeFilters={activeFilters}
+                    onFiltersChange={setActiveFilters}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Active Filters Pills - Mobile */}
-            {(selectedCategory !== "all" || showInStockOnly) && (
-              <div className="mb-4 flex flex-wrap gap-2 lg:hidden">
-                {selectedCategory !== "all" && (
-                  <Badge 
-                    variant="secondary" 
-                    className="cursor-pointer gap-1 px-3 py-1"
-                    onClick={() => setSelectedCategory("all")}
-                  >
-                    {data?.categories?.find((c: Category) => c.id === selectedCategory)?.name}
-                    <X className="size-3" />
-                  </Badge>
-                )}
-                {showInStockOnly && (
-                  <Badge 
-                    variant="secondary" 
-                    className="cursor-pointer gap-1 px-3 py-1"
-                    onClick={() => setShowInStockOnly(false)}
-                  >
-                    В наличии
-                    <X className="size-3" />
-                  </Badge>
-                )}
-              </div>
-            )}
+            {/* Active Filters Badges */}
+            <div className="mb-4">
+              <ActiveFiltersBadges
+                config={filtersConfig}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
+            </div>
 
             {/* Products Grid/List */}
             {isLoading ? (
@@ -590,13 +470,15 @@ export function ProductsPage() {
                 <p className="mt-1 text-muted-foreground">
                   Попробуйте изменить параметры поиска
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={clearFilters}
-                >
-                  Сбросить фильтры
-                </Button>
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={clearAllFilters}
+                  >
+                    Сбросить фильтры
+                  </Button>
+                )}
               </div>
             ) : (
               <div className={cn(

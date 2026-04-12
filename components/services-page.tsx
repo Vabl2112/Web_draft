@@ -1,20 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import useSWR from "swr"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { Search } from "lucide-react"
 import { Header } from "@/components/header"
 import { ServiceCard } from "@/components/service-card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -22,45 +15,113 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SmartFiltersDesktop, SmartFiltersMobile, ActiveFiltersBadges } from "@/components/smart-filters"
+import { servicesFiltersConfig } from "@/lib/filters-config"
+import type { ActiveFilters, FiltersConfig } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+interface Service {
+  id: string
+  title: string
+  description: string
+  priceFrom: number
+  priceTo: number | null
+  duration: string
+  category: string
+  images?: string[]
+  master: {
+    id: string
+    name: string
+    avatar: string
+    rating: number
+  }
+  popular: boolean
+}
 
 export function ServicesPage() {
   const { data, isLoading } = useSWR("/api/services", fetcher)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceSort, setPriceSort] = useState("default")
+  const [filtersConfig, setFiltersConfig] = useState<FiltersConfig | null>(null)
+  const [isFiltersLoading, setIsFiltersLoading] = useState(true)
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
+    category: null,
+    subFilters: {},
+  })
 
-  interface Service {
-    id: string
-    title: string
-    description: string
-    priceFrom: number
-    priceTo: number | null
-    duration: string
-    category: string
-    images?: string[]
-    master: {
-      id: string
-      name: string
-      avatar: string
-      rating: number
+  // Simulate fetching filters config from API
+  useEffect(() => {
+    const loadFilters = async () => {
+      setIsFiltersLoading(true)
+      // In production: const config = await fetchFiltersConfig("services")
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setFiltersConfig(servicesFiltersConfig)
+      setIsFiltersLoading(false)
     }
-    popular: boolean
+    loadFilters()
+  }, [])
+
+  // Filter services based on active filters
+  const filteredServices = useMemo(() => {
+    if (!data?.services) return []
+
+    return data.services
+      .filter((service: Service) => {
+        // Search filter
+        const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.description.toLowerCase().includes(searchQuery.toLowerCase())
+        
+        // Category filter
+        let matchesCategory = true
+        if (activeFilters.category) {
+          // Map filter category IDs to service categories
+          const categoryMapping: Record<string, string[]> = {
+            tattoo: ["tattoo", "тату"],
+            piercing: ["piercing", "пирсинг"],
+            permanent: ["permanent", "перманент"],
+            "art-services": ["art", "художественные", "иллюстрация"],
+          }
+          const relevantCategories = categoryMapping[activeFilters.category] || []
+          matchesCategory = relevantCategories.some(cat => 
+            service.category.toLowerCase().includes(cat)
+          )
+        }
+
+        // Sub-filters
+        let matchesSubFilters = true
+        
+        // Price range filter
+        if (activeFilters.subFilters["price-range"]) {
+          const priceRange = activeFilters.subFilters["price-range"] as string
+          const priceRanges: Record<string, [number, number]> = {
+            "0-3000": [0, 3000],
+            "3000-10000": [3000, 10000],
+            "10000-30000": [10000, 30000],
+            "30000+": [30000, Infinity],
+          }
+          if (priceRange !== "any" && priceRanges[priceRange]) {
+            const [min, max] = priceRanges[priceRange]
+            matchesSubFilters = service.priceFrom >= min && service.priceFrom <= max
+          }
+        }
+
+        return matchesSearch && matchesCategory && matchesSubFilters
+      })
+      .sort((a: Service, b: Service) => {
+        if (priceSort === "low") return a.priceFrom - b.priceFrom
+        if (priceSort === "high") return b.priceFrom - a.priceFrom
+        return 0
+      })
+  }, [data?.services, searchQuery, activeFilters, priceSort])
+
+  const clearAllFilters = () => {
+    setSearchQuery("")
+    setActiveFilters({ category: null, subFilters: {} })
+    setPriceSort("default")
   }
 
-  const filteredServices = data?.services
-    ?.filter((service: Service) => {
-      const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesCategory = selectedCategory === "all" || service.category === selectedCategory
-      return matchesSearch && matchesCategory
-    })
-    ?.sort((a: Service, b: Service) => {
-      if (priceSort === "low") return a.priceFrom - b.priceFrom
-      if (priceSort === "high") return b.priceFrom - a.priceFrom
-      return 0
-    })
+  const hasActiveFilters = activeFilters.category || Object.keys(activeFilters.subFilters).length > 0 || searchQuery
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,124 +136,100 @@ export function ServicesPage() {
           </p>
         </div>
 
-        {/* Categories - Desktop */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-6">
-          <TabsList className="hidden h-auto flex-wrap justify-start gap-1 bg-transparent p-0 sm:flex">
-            {data?.categories?.map((cat: { id: string; name: string }) => (
-              <TabsTrigger
-                key={cat.id}
-                value={cat.id}
-                className="rounded-full border border-border px-4 py-2 data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
-              >
-                {cat.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-
-        {/* Filters */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Search */}
-          <div className="relative flex-1 sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Поиск услуги..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Desktop Sort */}
-            <div className="hidden sm:block">
-              <Select value={priceSort} onValueChange={setPriceSort}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Сортировка по цене" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">По умолчанию</SelectItem>
-                  <SelectItem value="low">Сначала дешевле</SelectItem>
-                  <SelectItem value="high">Сначала дороже</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          {/* Desktop Sidebar Filters */}
+          <aside className="hidden w-64 shrink-0 lg:block">
+            <div className="sticky top-24">
+              <SmartFiltersDesktop
+                config={filtersConfig}
+                isLoading={isFiltersLoading}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
             </div>
+          </aside>
 
-            {/* Mobile Filters */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="sm:hidden">
-                  <SlidersHorizontal className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto rounded-t-2xl">
-                <SheetHeader>
-                  <SheetTitle>Фильтры</SheetTitle>
-                </SheetHeader>
-                <div className="mt-4 flex flex-col gap-4 pb-6">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">Категория</label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите категорию" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {data?.categories?.map((cat: { id: string; name: string }) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium">Сортировка</label>
-                    <Select value={priceSort} onValueChange={setPriceSort}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="По цене" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">По умолчанию</SelectItem>
-                        <SelectItem value="low">Сначала дешевле</SelectItem>
-                        <SelectItem value="high">Сначала дороже</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Search and Sort Bar */}
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск услуги..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Desktop Sort */}
+                <div className="hidden sm:block">
+                  <Select value={priceSort} onValueChange={setPriceSort}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue placeholder="Сортировка по цене" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">По умолчанию</SelectItem>
+                      <SelectItem value="low">Сначала дешевле</SelectItem>
+                      <SelectItem value="high">Сначала дороже</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </SheetContent>
-            </Sheet>
+
+                {/* Mobile Filters */}
+                <div className="lg:hidden">
+                  <SmartFiltersMobile
+                    config={filtersConfig}
+                    isLoading={isFiltersLoading}
+                    activeFilters={activeFilters}
+                    onFiltersChange={setActiveFilters}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Badges */}
+            <div className="mb-4">
+              <ActiveFiltersBadges
+                config={filtersConfig}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+              />
+            </div>
+
+            {/* Services Grid */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-48 rounded-2xl" />
+                ))
+              ) : filteredServices?.length === 0 ? (
+                <div className="col-span-full py-12 text-center">
+                  <p className="text-lg text-muted-foreground">Услуги не найдены</p>
+                  {hasActiveFilters && (
+                    <Button variant="link" onClick={clearAllFilters}>
+                      Сбросить фильтры
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                filteredServices?.map((service: Service) => (
+                  <ServiceCard key={service.id} service={service} />
+                ))
+              )}
+            </div>
+
+            {/* Results Count */}
+            {!isLoading && filteredServices?.length > 0 && (
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Найдено {filteredServices.length} услуг
+              </p>
+            )}
           </div>
         </div>
-
-        {/* Services Grid */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 rounded-2xl" />
-            ))
-          ) : filteredServices?.length === 0 ? (
-            <div className="col-span-full py-12 text-center">
-              <p className="text-lg text-muted-foreground">Услуги не найдены</p>
-              <Button
-                variant="link"
-                onClick={() => { setSearchQuery(""); setSelectedCategory("all") }}
-              >
-                Сбросить фильтры
-              </Button>
-            </div>
-          ) : (
-            filteredServices?.map((service: Service) => (
-              <ServiceCard key={service.id} service={service} />
-            ))
-          )}
-        </div>
-
-        {/* Results Count */}
-        {!isLoading && filteredServices?.length > 0 && (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Найдено {filteredServices.length} услуг
-          </p>
-        )}
       </main>
     </div>
   )

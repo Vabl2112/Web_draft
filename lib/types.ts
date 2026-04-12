@@ -153,3 +153,34 @@ export interface ExtendedArtistProfile {
   reviews: Review[]
   calculators: MasterCalculatorConfig[]
 }
+
+// Smart Cascading Filters
+export interface FilterOption {
+  id: string
+  name: string
+  count?: number
+}
+
+export interface SubFilter {
+  id: string
+  name: string
+  type: "single" | "multiple" | "range" | "checkbox"
+  options: FilterOption[]
+}
+
+export interface CategoryFilter {
+  id: string
+  name: string
+  icon?: string
+  subFilters: SubFilter[]
+}
+
+export interface FiltersConfig {
+  categories: CategoryFilter[]
+  commonFilters?: SubFilter[] // Filters available for all categories
+}
+
+export interface ActiveFilters {
+  category: string | null
+  subFilters: Record<string, string | string[] | { min: number; max: number }>
+}
