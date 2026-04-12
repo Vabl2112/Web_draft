@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Pencil, Clock, RefreshCw, Star, Heart, Check, MoreVertical, Edit2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ImageCarousel } from "@/components/image-carousel"
@@ -41,6 +42,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 }
 
 export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCardProps) {
+  const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null)
   const [editingService, setEditingService] = useState<Service | null>(null)
@@ -83,11 +85,15 @@ export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCa
           return (
             <div 
               key={service.id} 
-              className="group relative flex flex-col gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-start"
+              className="group relative flex flex-col gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-start cursor-pointer"
+              onClick={() => router.push(`/service/${service.id}`)}
             >
               {/* Image carousel if available */}
               {hasImages && (
-                <div className="w-full shrink-0 sm:w-32">
+                <div 
+                  className="w-full shrink-0 sm:w-32"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <ImageCarousel
                     images={service.images!}
                     alt={service.title}
