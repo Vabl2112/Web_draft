@@ -113,13 +113,15 @@ export interface CalculatorVariable {
   id: string
   name: string // Variable name like 'a', 'b', 'c'
   label: string // Display label for users
-  type: "slider" | "number" | "select"
+  type: "slider" | "number" | "select" | "radio" | "checkbox"
   defaultValue: number
   min?: number
   max?: number
   step?: number
   unit?: string
-  options?: { value: number; label: string }[]
+  options?: { value: number; label: string }[] // value = weight/numeric value for formula
+  checkedValue?: number // For checkbox: value when checked
+  uncheckedValue?: number // For checkbox: value when unchecked
 }
 
 export interface MasterCalculatorConfig {
