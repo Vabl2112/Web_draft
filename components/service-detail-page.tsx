@@ -110,10 +110,10 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
         <Button 
           variant="ghost" 
           className="mb-4 gap-2"
-          onClick={() => router.back()}
+          onClick={() => router.push("/services")}
         >
           <ArrowLeft className="size-4" />
-          Назад
+          Назад к услугам
         </Button>
 
         <div className="grid gap-8 lg:grid-cols-5">

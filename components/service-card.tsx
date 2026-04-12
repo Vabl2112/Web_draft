@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Clock, Star, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react"
+import { Clock, Star, TrendingUp, ChevronLeft, ChevronRight, Heart } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,7 @@ function formatPrice(from: number, to: number | null): string {
 export function ServiceCard({ service }: ServiceCardProps) {
   const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isLiked, setIsLiked] = useState(false)
   const images = service.images || []
   const hasImages = images.length > 0
 
@@ -116,6 +118,17 @@ export function ServiceCard({ service }: ServiceCardProps) {
               Популярно
             </Badge>
           )}
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsLiked(!isLiked)
+            }}
+          >
+            <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+          </Button>
         </div>
       )}
 

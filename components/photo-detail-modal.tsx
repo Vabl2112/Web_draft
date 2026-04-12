@@ -134,26 +134,23 @@ export function PhotoDetailModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="h-[90vh] max-h-[90vh] max-w-6xl gap-0 overflow-hidden p-0 sm:rounded-xl">
-        <DialogTitle className="sr-only">{photo.title}</DialogTitle>
+    <Dialog open={isOpen && !!photo} onOpenChange={() => onClose()}>
+      <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row" showCloseButton={false}>
+        <DialogTitle className="sr-only">{photo?.title || "Фото"}</DialogTitle>
         <DialogDescription className="sr-only">
-          {photo.description || `Фото работы от ${photo.author}`}
+          {photo?.description || `Фото работы от ${photo?.author || "мастера"}`}
         </DialogDescription>
         
-        <div className="flex h-full flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative flex h-[50vh] flex-1 items-center justify-center bg-black md:h-full">
-            <div className="relative h-full w-full">
-              <Image
-                src={currentImage}
-                alt={photo.title}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 65vw"
-                priority
-              />
-            </div>
+          <div className="relative h-[50vh] w-full bg-black md:h-full md:flex-1">
+            <Image
+              src={currentImage}
+              alt={photo.title}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, calc(100vw - 380px)"
+              priority
+            />
             
             {/* Close button */}
             <Button
@@ -243,7 +240,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full md:w-[380px] md:min-w-[380px]">
+          <div className="flex h-[40vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[400px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 
@@ -257,18 +254,30 @@ export function PhotoDetailModal({
                 <span className="font-semibold hover:underline">{photo.author}</span>
               </Link>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="size-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Пожаловаться</DropdownMenuItem>
-                  <DropdownMenuItem>Копировать ссылку</DropdownMenuItem>
-                  <DropdownMenuItem>Поделиться</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="size-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Пожаловаться</DropdownMenuItem>
+                    <DropdownMenuItem>Копировать ссылку</DropdownMenuItem>
+                    <DropdownMenuItem>Поделиться</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                {/* Close button - visible on desktop, hidden on mobile (mobile has one on image) */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden md:flex"
+                  onClick={onClose}
+                >
+                  <X className="size-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Comments Section */}
@@ -400,7 +409,6 @@ export function PhotoDetailModal({
               </form>
             </div>
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   )

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -150,6 +151,9 @@ export function MessageDialog({ open, onOpenChange, artist }: MessageDialogProps
             <DialogTitle className="text-left text-base font-semibold">
               {artist.name}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Диалог с мастером {artist.name}
+            </DialogDescription>
             <span className="text-xs text-muted-foreground">был(а) в сети 5 мин назад</span>
           </div>
         </DialogHeader>

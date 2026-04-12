@@ -3,6 +3,8 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
 import type { GalleryImage } from "@/lib/types"
@@ -45,6 +47,20 @@ const sampleComments: PhotoComment[] = [
 export function GalleryMasonry({ images }: GalleryMasonryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
+  const [likedImages, setLikedImages] = useState<Set<string>>(new Set())
+
+  const toggleLike = (imageId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLikedImages(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(imageId)) {
+        newSet.delete(imageId)
+      } else {
+        newSet.add(imageId)
+      }
+      return newSet
+    })
+  }
   
   const getHeightClass = (height: "small" | "medium" | "large") => {
     switch (height) {
@@ -122,6 +138,16 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  
+                  {/* Like button */}
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={(e) => toggleLike(image.id, e)}
+                  >
+                    <Heart className={cn("size-4", likedImages.has(image.id) && "fill-destructive text-destructive")} />
+                  </Button>
                   
                   {/* Hover overlay with stats */}
                   <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">

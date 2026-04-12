@@ -144,9 +144,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-6">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push("/products")}>
             <ArrowLeft className="size-4" />
-            Назад
+            Назад к товарам
           </Button>
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="space-y-3">
@@ -176,9 +176,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-6">
-          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.back()}>
+          <Button variant="ghost" className="mb-4 gap-2" onClick={() => router.push("/products")}>
             <ArrowLeft className="size-4" />
-            Назад
+            Назад к товарам
           </Button>
           <div className="flex flex-col items-center justify-center py-20">
             <p className="text-lg text-muted-foreground">{error || "Товар не найден"}</p>
@@ -201,10 +201,10 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <Button 
           variant="ghost" 
           className="mb-4 gap-2"
-          onClick={() => router.back()}
+          onClick={() => router.push("/products")}
         >
           <ArrowLeft className="size-4" />
-          Назад
+          Назад к товарам
         </Button>
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -359,53 +359,57 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             <Separator />
 
             {/* Color Selection */}
-            <div>
-              <p className="mb-3 text-sm font-medium">
-                Цвет: <span className="text-muted-foreground">{selectedColor.name}</span>
-              </p>
-              <div className="flex gap-2">
-                {product.colors.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color)}
-                    className={cn(
-                      "size-10 rounded-full border-2 transition-all",
-                      selectedColor.name === color.name 
-                        ? "border-primary ring-2 ring-primary ring-offset-2" 
-                        : "border-border hover:border-foreground/50"
-                    )}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
+            {product.colors && product.colors.length > 0 && (
+              <div>
+                <p className="mb-3 text-sm font-medium">
+                  Цвет: <span className="text-muted-foreground">{selectedColor?.name}</span>
+                </p>
+                <div className="flex gap-2">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setSelectedColor(color)}
+                      className={cn(
+                        "size-10 rounded-full border-2 transition-all",
+                        selectedColor?.name === color.name 
+                          ? "border-primary ring-2 ring-primary ring-offset-2" 
+                          : "border-border hover:border-foreground/50"
+                      )}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selection */}
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-medium">Размер</p>
-                <button className="text-sm text-primary hover:underline">
-                  Таблица размеров
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={cn(
-                      "min-w-12 rounded-lg border px-4 py-2 text-sm font-medium transition-all",
-                      selectedSize === size 
-                        ? "border-primary bg-primary text-primary-foreground" 
-                        : "border-border hover:border-foreground/50"
-                    )}
-                  >
-                    {size}
+            {product.sizes && product.sizes.length > 0 && (
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-medium">Размер</p>
+                  <button className="text-sm text-primary hover:underline">
+                    Таблица размеров
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={cn(
+                        "min-w-12 rounded-lg border px-4 py-2 text-sm font-medium transition-all",
+                        selectedSize === size 
+                          ? "border-primary bg-primary text-primary-foreground" 
+                          : "border-border hover:border-foreground/50"
+                      )}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity & Add to Cart */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -436,15 +440,15 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               <Button 
                 className="flex-1 gap-2" 
                 size="lg"
-                disabled={!product.inStock || !selectedSize}
+                disabled={!product.inStock || (product.sizes && product.sizes.length > 0 && !selectedSize)}
               >
                 <ShoppingCart className="size-4" />
                 В корзину
               </Button>
             </div>
 
-            {!selectedSize && (
-              <p className="text-sm text-muted-foreground">Выбери��е размер для добавления в корзину</p>
+            {product.sizes && product.sizes.length > 0 && !selectedSize && (
+              <p className="text-sm text-muted-foreground">Выберите размер для добавления в корзину</p>
             )}
 
             {/* Delivery Info */}
