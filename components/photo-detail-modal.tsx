@@ -141,15 +141,15 @@ export function PhotoDetailModal({
           {photo.description || `Фото работы от ${photo.author}`}
         </DialogDescription>
         
-        <div className="grid h-full grid-rows-[1fr_auto] md:grid-cols-[1fr_380px] md:grid-rows-1">
+        <div className="flex h-full flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative h-[50vh] w-full bg-black md:h-full">
+          <div className="relative min-h-[50vh] flex-1 bg-black md:min-h-full">
             <Image
               src={currentImage}
               alt={photo.title}
               fill
               className="object-contain"
-              sizes="(max-width: 768px) 100vw, 70vw"
+              sizes="(max-width: 768px) 100vw, calc(100vw - 380px)"
               priority
             />
             
@@ -241,7 +241,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full">
+          <div className="flex h-[40vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[380px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 
