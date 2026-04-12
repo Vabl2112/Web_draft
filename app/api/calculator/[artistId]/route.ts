@@ -52,9 +52,9 @@ const calculatorConfigs: Record<string, MasterCalculatorConfig> = {
           { value: 1.3, label: "Плечо" },
           { value: 1.5, label: "Спина" },
           { value: 1.4, label: "Грудь" },
-          { value: 1.2, label: "Нога" },
+          { value: 1.25, label: "Нога" },
           { value: 1.6, label: "Ребра" },
-          { value: 1.5, label: "Шея" },
+          { value: 1.55, label: "Шея" },
         ]
       },
       {

@@ -231,8 +231,29 @@ export function CalculatorEditor({
     setIsOpen(false)
   }
 
+  // Validate formula for invalid number formats like "50 0"
+  const validateFormula = (formulaStr: string): { valid: boolean; error?: string } => {
+    // Check for invalid number patterns (numbers with spaces like "50 0")
+    // Match: digit, then space, then digit (but not separated by operators)
+    if (/\d\s+\d/.test(formulaStr)) {
+      // Find the exact invalid pattern for error message
+      const match = formulaStr.match(/\d+\s+\d+/)
+      if (match) {
+        return { valid: false, error: `Некорректное число: "${match[0]}"` }
+      }
+      return { valid: false, error: "Некорректный формат числа" }
+    }
+    return { valid: true }
+  }
+
   // Preview calculated price
-  const previewPrice = () => {
+  const previewPrice = (): { value: number; error?: string } => {
+    // First validate the formula
+    const validation = validateFormula(formula)
+    if (!validation.valid) {
+      return { value: 0, error: validation.error }
+    }
+
     try {
       let f = formula
       variables.forEach(v => {
@@ -249,11 +270,18 @@ export function CalculatorEditor({
         
         f = f.replace(new RegExp(v.name, 'g'), String(value))
       })
+
+      // Check again after variable substitution
+      const postValidation = validateFormula(f)
+      if (!postValidation.valid) {
+        return { value: 0, error: postValidation.error }
+      }
+
       const sanitized = f.replace(/[^0-9+\-*/().]/g, '')
       // eslint-disable-next-line no-new-func
-      return Math.round(new Function(`return ${sanitized}`)())
+      return { value: Math.round(new Function(`return ${sanitized}`)()) }
     } catch {
-      return 0
+      return { value: 0, error: "Ошибка в формуле" }
     }
   }
 
@@ -645,14 +673,23 @@ export function CalculatorEditor({
                 </div>
               </div>
               
-              {variables.length > 0 && formula && (
-                <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <span className="text-sm text-muted-foreground">Предпросмотр:</span>
-                  <span className="text-lg font-bold">
-                    ≈ {previewPrice().toLocaleString("ru-RU")} {currency}
-                  </span>
-                </div>
-              )}
+              {variables.length > 0 && formula && (() => {
+                const preview = previewPrice()
+                return (
+                  <div className={`flex items-center justify-between rounded-lg border p-3 ${preview.error ? "border-destructive bg-destructive/5" : "border-border"}`}>
+                    <span className="text-sm text-muted-foreground">Предпросмотр:</span>
+                    {preview.error ? (
+                      <span className="text-sm font-medium text-destructive">
+                        {preview.error}
+                      </span>
+                    ) : (
+                      <span className="text-lg font-bold">
+                        ≈ {preview.value.toLocaleString("ru-RU")} {currency}
+                      </span>
+                    )}
+                  </div>
+                )
+              })()}
               
               <div className="space-y-2">
                 <Label>Валюта</Label>
