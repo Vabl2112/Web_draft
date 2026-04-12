@@ -19,6 +19,10 @@ export async function GET() {
       priceTo: null,
       duration: "1-3 дня",
       category: "tattoo",
+      images: [
+        "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=400&h=300&fit=crop"
+      ],
       master: {
         id: "1",
         name: "Алексей Смирнов",
@@ -35,6 +39,10 @@ export async function GET() {
       priceTo: 10000,
       duration: "1-2 часа",
       category: "tattoo",
+      images: [
+        "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1590246815117-0ec27ac9bc95?w=400&h=300&fit=crop"
+      ],
       master: {
         id: "2",
         name: "Мария Волкова",
@@ -51,6 +59,9 @@ export async function GET() {
       priceTo: 25000,
       duration: "2-4 часа",
       category: "tattoo",
+      images: [
+        "https://images.unsplash.com/photo-1565058379802-bbe93b2f703a?w=400&h=300&fit=crop"
+      ],
       master: {
         id: "1",
         name: "Алексей Смирнов",
@@ -67,6 +78,11 @@ export async function GET() {
       priceTo: null,
       duration: "от 4 часов",
       category: "tattoo",
+      images: [
+        "https://images.unsplash.com/photo-1475180429745-21de9a24a9fb?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1542359649-31e03cd4d909?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=400&h=300&fit=crop"
+      ],
       master: {
         id: "3",
         name: "Дмитрий Козлов",
@@ -99,6 +115,9 @@ export async function GET() {
       priceTo: 15000,
       duration: "2-3 часа",
       category: "permanent",
+      images: [
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=300&fit=crop"
+      ],
       master: {
         id: "6",
         name: "Елена Соколова",

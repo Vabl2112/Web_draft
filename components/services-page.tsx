@@ -40,6 +40,7 @@ export function ServicesPage() {
     priceTo: number | null
     duration: string
     category: string
+    images?: string[]
     master: {
       id: string
       name: string

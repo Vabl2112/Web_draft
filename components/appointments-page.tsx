@@ -191,7 +191,7 @@ export function AppointmentsPage() {
             </Avatar>
             <div>
               <Link 
-                href={`/artist/${appointment.artistId}`}
+                href={`/master/${appointment.artistId}`}
                 className="font-semibold hover:underline"
               >
                 {appointment.artistName}
