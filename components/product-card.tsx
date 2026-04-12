@@ -4,7 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Star, ShoppingCart, Heart } from "lucide-react"
+import { Star, Heart } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -115,18 +115,6 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-sm text-muted-foreground">{product.seller.name}</span>
         </Link>
 
-        {/* Action */}
-        <Button 
-          className="mt-4 w-full gap-2" 
-          disabled={!product.inStock}
-          onClick={(e) => {
-            e.stopPropagation()
-            // Add to cart logic here
-          }}
-        >
-          <ShoppingCart className="size-4" />
-          В корзину
-        </Button>
       </div>
     </div>
   )

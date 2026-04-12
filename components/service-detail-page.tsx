@@ -13,7 +13,6 @@ import {
   Share2,
   ChevronLeft,
   ChevronRight,
-  Calendar,
   MessageCircle
 } from "lucide-react"
 import { Header } from "@/components/header"
@@ -278,10 +277,6 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  <Button className="w-full gap-2" size="lg">
-                    <Calendar className="size-4" />
-                    Записаться
-                  </Button>
                   <Button variant="outline" className="w-full gap-2" size="lg">
                     <MessageCircle className="size-4" />
                     Написать мастеру

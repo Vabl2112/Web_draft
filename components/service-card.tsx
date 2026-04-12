@@ -182,16 +182,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
               </div>
             </div>
           </Link>
-
-          <Button 
-            className="w-full sm:w-auto"
-            onClick={(e) => {
-              e.stopPropagation()
-              router.push(`/service/${service.id}`)
-            }}
-          >
-            Записаться
-          </Button>
         </div>
       </div>
     </div>

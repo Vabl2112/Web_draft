@@ -320,7 +320,7 @@ function SingleCalculator({
         </div>
 
         {/* Price Card */}
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6">
+        <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-6">
           <div className="text-center">
             <span className="text-4xl font-bold text-foreground">
               ≈ {formatPrice(calculatedPrice)} {config.currency}
@@ -329,10 +329,6 @@ function SingleCalculator({
               Примерная стоимость
             </p>
           </div>
-          
-          <Button className="mt-6 w-full rounded-full py-6 text-base font-semibold">
-            Записаться с этим расчетом
-          </Button>
         </div>
       </div>
     </div>
