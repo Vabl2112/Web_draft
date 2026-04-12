@@ -23,6 +23,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -45,6 +46,7 @@ export interface PhotoComment {
 export interface PhotoDetail {
   id: string
   imageUrl: string
+  images?: string[] // Support multiple images
   title: string
   description?: string
   author: string
@@ -87,6 +89,22 @@ export function PhotoDetailModal({
   const [localLiked, setLocalLiked] = useState(photo?.isLiked ?? false)
   const [localSaved, setLocalSaved] = useState(photo?.isSaved ?? false)
   const [localLikes, setLocalLikes] = useState(photo?.likes ?? 0)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Get all images (support both single imageUrl and images array)
+  const allImages = photo?.images?.length ? photo.images : (photo?.imageUrl ? [photo.imageUrl] : [])
+  const currentImage = allImages[currentImageIndex] || photo?.imageUrl || ""
+  const hasMultipleImages = allImages.length > 1
+
+  const goToPrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1))
+  }
+
+  const goToNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1))
+  }
 
   if (!photo) return null
 
@@ -117,47 +135,99 @@ export function PhotoDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-5xl gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent className="h-[90vh] max-h-[90vh] max-w-6xl gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogTitle className="sr-only">{photo.title}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {photo.description || `Фото работы от ${photo.author}`}
+        </DialogDescription>
         
-        <div className="flex h-full max-h-[90vh] flex-col md:flex-row">
+        <div className="flex h-full flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative flex flex-1 items-center justify-center bg-black">
-            <Image
-              src={photo.imageUrl}
-              alt={photo.title}
-              width={800}
-              height={800}
-              className="max-h-[50vh] w-full object-contain md:max-h-[90vh]"
-            />
+          <div className="relative flex h-[50vh] flex-1 items-center justify-center bg-black md:h-full">
+            <div className="relative h-full w-full">
+              <Image
+                src={currentImage}
+                alt={photo.title}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 65vw"
+                priority
+              />
+            </div>
             
             {/* Close button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2 text-white hover:bg-white/20 md:hidden"
+              className="absolute right-2 top-2 z-20 text-white hover:bg-white/20 md:hidden"
               onClick={onClose}
             >
               <X className="size-5" />
             </Button>
             
-            {/* Navigation arrows */}
-            {hasPrevious && (
+            {/* Image carousel navigation (within current photo's images) */}
+            {hasMultipleImages && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
+                  onClick={goToPrevImage}
+                >
+                  <ChevronLeft className="size-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
+                  onClick={goToNextImage}
+                >
+                  <ChevronRight className="size-5" />
+                </Button>
+                
+                {/* Image dots indicator */}
+                <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+                  {allImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setCurrentImageIndex(idx)
+                      }}
+                      className={cn(
+                        "size-2 rounded-full transition-all",
+                        idx === currentImageIndex 
+                          ? "bg-white w-4" 
+                          : "bg-white/60 hover:bg-white/80"
+                      )}
+                    />
+                  ))}
+                </div>
+                
+                {/* Image counter */}
+                <div className="absolute left-2 top-2 z-20 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                  {currentImageIndex + 1}/{allImages.length}
+                </div>
+              </>
+            )}
+            
+            {/* Previous/Next item navigation (for gallery browsing) */}
+            {!hasMultipleImages && hasPrevious && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
+                className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
                 onClick={onPrevious}
               >
                 <ChevronLeft className="size-5" />
               </Button>
             )}
             
-            {hasNext && (
+            {!hasMultipleImages && hasNext && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
+                className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
                 onClick={onNext}
               >
                 <ChevronRight className="size-5" />
@@ -166,14 +236,14 @@ export function PhotoDetailModal({
             
             {/* Double tap to like indicator */}
             <button
-              className="absolute inset-0 focus:outline-none"
+              className="absolute inset-0 z-10 focus:outline-none"
               onDoubleClick={handleLike}
               aria-label="Double tap to like"
             />
           </div>
 
           {/* Details Section */}
-          <div className="flex w-full flex-col border-l border-border bg-background md:w-96">
+          <div className="flex h-[40vh] w-full flex-col border-l border-border bg-background md:h-full md:w-[380px] md:min-w-[380px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Star, ShoppingCart, Heart, MoreVertical, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -62,6 +63,7 @@ function ProductCard({
   onEdit?: (product: Product) => void
   onDelete?: (id: string) => void
 }) {
+  const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -69,8 +71,15 @@ function ProductCard({
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
+  const handleCardClick = () => {
+    router.push(`/product/${product.id}`)
+  }
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg">
+    <div 
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image Carousel */}
       <div className="relative">
         <ImageCarousel
@@ -78,6 +87,7 @@ function ProductCard({
           alt={product.title}
           aspectRatio="square"
           className="rounded-none rounded-t-2xl"
+          onImageClick={() => handleCardClick()}
         />
         
         {discount && (
@@ -98,7 +108,10 @@ function ProductCard({
             variant="secondary"
             size="icon"
             className="absolute right-3 top-3 z-10 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsLiked(!isLiked)
+            }}
           >
             <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
           </Button>
@@ -204,6 +217,10 @@ function ProductCard({
           <Button 
             className="mt-4 w-full gap-2" 
             disabled={!product.inStock}
+            onClick={(e) => {
+              e.stopPropagation()
+              // Add to cart logic here
+            }}
           >
             <ShoppingCart className="size-4" />
             В корзину

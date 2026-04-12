@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Star, ShoppingCart, Heart } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -30,13 +31,21 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
+  const handleCardClick = () => {
+    router.push(`/product/${product.id}`)
+  }
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg">
+    <div 
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <Image
@@ -59,7 +68,10 @@ export function ProductCard({ product }: ProductCardProps) {
           variant="secondary"
           size="icon"
           className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsLiked(!isLiked)
+          }}
         >
           <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
         </Button>
@@ -94,6 +106,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <Link
           href={`/master/${product.seller.id}`}
           className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
+          onClick={(e) => e.stopPropagation()}
         >
           <Avatar className="size-6">
             <AvatarImage src={product.seller.avatar} alt={product.seller.name} />
@@ -106,6 +119,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <Button 
           className="mt-4 w-full gap-2" 
           disabled={!product.inStock}
+          onClick={(e) => {
+            e.stopPropagation()
+            // Add to cart logic here
+          }}
         >
           <ShoppingCart className="size-4" />
           В корзину

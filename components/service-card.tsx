@@ -1,12 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Clock, Star, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
 
 interface ServiceCardProps {
   service: {
@@ -36,9 +37,14 @@ function formatPrice(from: number, to: number | null): string {
 }
 
 export function ServiceCard({ service }: ServiceCardProps) {
+  const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const images = service.images || []
   const hasImages = images.length > 0
+
+  const handleCardClick = () => {
+    router.push(`/service/${service.id}`)
+  }
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -51,7 +57,10 @@ export function ServiceCard({ service }: ServiceCardProps) {
   }
 
   return (
-    <div className="group flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg">
+    <div 
+      className="group flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image Section */}
       {hasImages && (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
@@ -67,7 +76,10 @@ export function ServiceCard({ service }: ServiceCardProps) {
                 variant="secondary"
                 size="icon"
                 className="absolute left-2 top-1/2 -translate-y-1/2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={prevImage}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  prevImage(e)
+                }}
               >
                 <ChevronLeft className="size-4" />
               </Button>
@@ -75,7 +87,10 @@ export function ServiceCard({ service }: ServiceCardProps) {
                 variant="secondary"
                 size="icon"
                 className="absolute right-2 top-1/2 -translate-y-1/2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={nextImage}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  nextImage(e)
+                }}
               >
                 <ChevronRight className="size-4" />
               </Button>
@@ -140,6 +155,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
           <Link 
             href={`/master/${service.master.id}`}
             className="flex items-center gap-3 transition-opacity hover:opacity-80"
+            onClick={(e) => e.stopPropagation()}
           >
             <Avatar className="size-10">
               <AvatarImage src={service.master.avatar} alt={service.master.name} />
@@ -154,7 +170,15 @@ export function ServiceCard({ service }: ServiceCardProps) {
             </div>
           </Link>
 
-          <Button className="w-full sm:w-auto">Записаться</Button>
+          <Button 
+            className="w-full sm:w-auto"
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push(`/service/${service.id}`)
+            }}
+          >
+            Записаться
+          </Button>
         </div>
       </div>
     </div>
