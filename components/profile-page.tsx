@@ -20,9 +20,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { DEMO_USER_ID } from "@/lib/demo-constants"
 
 const userProfile = {
-  id: "user1",
+  id: DEMO_USER_ID,
   name: "Алексей Смирнов",
   email: "alexey@example.com",
   phone: "+7 (999) 123-45-67",

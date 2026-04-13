@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import type { MasterProfileConfig } from "@/lib/types"
+import { DEMO_MASTER_ID } from "@/lib/demo-constants"
 
 // In-memory storage for demo (in production, this would be in a database)
 let masterProfiles: Record<string, MasterProfileConfig> = {
-  "1": {
+  [DEMO_MASTER_ID]: {
     bio: "Профессиональный тату-мастер с 10-летним опытом. Специализируюсь на японской традиционной татуировке и неотраде.",
     tags: ["Японский стиль", "Неотрад", "Блэкворк", "Орнаментал"],
     sections: {
@@ -33,10 +34,18 @@ let masterProfiles: Record<string, MasterProfileConfig> = {
   }
 }
 
+function resolveArtistId(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const artistIdFromQuery = searchParams.get("artistId")
+  const artistIdFromHeader = request.headers.get("x-artist-id")
+
+  return artistIdFromQuery || artistIdFromHeader || DEMO_MASTER_ID
+}
+
 // GET - Retrieve master profile config
 export async function GET(request: Request) {
   // In production, get artistId from auth session
-  const artistId = "1"
+  const artistId = resolveArtistId(request)
   
   const profile = masterProfiles[artistId]
   
@@ -53,7 +62,7 @@ export async function GET(request: Request) {
 // PUT - Update master profile config
 export async function PUT(request: Request) {
   // In production, get artistId from auth session
-  const artistId = "1"
+  const artistId = resolveArtistId(request)
   
   try {
     const body: MasterProfileConfig = await request.json()
@@ -85,7 +94,7 @@ export async function PUT(request: Request) {
 // PATCH - Partially update master profile config
 export async function PATCH(request: Request) {
   // In production, get artistId from auth session
-  const artistId = "1"
+  const artistId = resolveArtistId(request)
   
   try {
     const body: Partial<MasterProfileConfig> = await request.json()

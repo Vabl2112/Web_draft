@@ -145,19 +145,19 @@ export function PhotoDetailModal({
 
   return (
     <Dialog open={isOpen && !!photo} onOpenChange={() => onClose()}>
-      <DialogContent className="flex h-[95vh] max-h-[95vh] w-[95vw] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl md:flex-row" showCloseButton={false}>
+      <DialogContent className="flex h-[92vh] max-h-[92vh] w-[96vw] max-w-[96vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[96vw] sm:rounded-xl md:max-w-[1200px] md:flex-row" showCloseButton={false}>
         <DialogTitle className="sr-only">{photo?.title || "Фото"}</DialogTitle>
         <DialogDescription className="sr-only">
           {photo?.description || `Фото работы от ${photo?.author || "мастера"}`}
         </DialogDescription>
         
           {/* Image Section */}
-          <div className="relative h-[50vh] w-full bg-black md:h-full md:flex-1">
+          <div className="relative h-[48vh] w-full overflow-hidden bg-black md:h-full md:flex-1">
             <Image
               src={currentImage}
               alt={photo.title}
               fill
-              className="object-contain"
+              className="object-cover object-center"
               sizes="(max-width: 768px) 100vw, calc(100vw - 380px)"
               priority
             />
@@ -250,7 +250,7 @@ export function PhotoDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="flex h-[40vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[400px]">
+          <div className="flex h-[44vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[380px]">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link 

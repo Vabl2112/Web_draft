@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { DEMO_MASTER_ID } from "@/lib/demo-constants"
 
 export type UserRole = "user" | "master"
 
@@ -29,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Demo user for testing - set to null to test unauthenticated state
 const DEMO_USER: User | null = {
-  id: "1",
+  id: DEMO_MASTER_ID,
   name: "Алексей Смирнов",
   email: "alexey@example.com",
   avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",

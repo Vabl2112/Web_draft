@@ -335,9 +335,10 @@ function SingleCalculator({
   )
 }
 
-export function CalculatorCard({ artistId = "1", isOwner, onEdit, onDelete }: CalculatorCardProps) {
+export function CalculatorCard({ artistId, isOwner, onEdit, onDelete }: CalculatorCardProps) {
+  const shouldFetch = Boolean(artistId)
   const { data, isLoading } = useSWR<{ formula: string; parameters: CalculatorVariable[]; currency: string }>(
-    `/api/calculator/${artistId}`,
+    shouldFetch ? `/api/calculator/${artistId}` : null,
     fetcher
   )
 

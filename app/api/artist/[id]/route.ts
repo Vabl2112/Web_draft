@@ -105,5 +105,11 @@ export async function GET(
   await new Promise(resolve => setTimeout(resolve, 100))
   
   // In real app, fetch from database based on id
-  return NextResponse.json(mockArtistData)
+  return NextResponse.json({
+    ...mockArtistData,
+    artist: {
+      ...mockArtistData.artist,
+      id,
+    },
+  })
 }

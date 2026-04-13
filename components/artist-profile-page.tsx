@@ -83,8 +83,9 @@ function SectionHeader({
 
 export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
   const { user, isAuthenticated } = useAuth()
+  const resolvedMasterId = masterId || user?.id
   const { data, error, isLoading, mutate } = useSWR<ArtistProfile>(
-    `/api/artist/${masterId || "1"}`, 
+    resolvedMasterId ? `/api/artist/${resolvedMasterId}` : null,
     fetcher
   )
   

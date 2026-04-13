@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import type { CalculatorVariable, MasterCalculatorConfig } from "@/lib/types"
+import { DEMO_MASTER_ID } from "@/lib/demo-constants"
 
 // In-memory storage for demo (in production, this would be in a database)
 const calculatorConfigs: Record<string, MasterCalculatorConfig> = {
-  "1": {
+  [DEMO_MASTER_ID]: {
     variables: [
       { 
         id: "a", 
