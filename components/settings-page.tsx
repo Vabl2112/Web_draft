@@ -63,10 +63,6 @@ interface UserProfile {
   // Master-specific fields
   bio?: string
   tags?: string[]
-  showPortfolio?: boolean
-  showServices?: boolean
-  showCalculator?: boolean
-  showReviews?: boolean
 }
 
 const userProfile: UserProfile = {
@@ -77,10 +73,6 @@ const userProfile: UserProfile = {
   role: "master", // Change to "user" to test user mode
   bio: "Профессиональный тату-мастер с 10-летним опытом. Специализируюсь на японской традиционной татуировке и неотраде.",
   tags: ["Японский стиль", "Неотрад", "Блэкворк", "Орнаментал"],
-  showPortfolio: true,
-  showServices: true,
-  showCalculator: true,
-  showReviews: true,
 }
 
 type SettingsSection = "profile" | "notifications" | "privacy" | "appearance" | "language"
@@ -101,10 +93,6 @@ export function SettingsPage() {
   const [bio, setBio] = useState(userProfile.bio || "")
   const [tags, setTags] = useState<string[]>(userProfile.tags || [])
   const [newTag, setNewTag] = useState("")
-  const [showPortfolio, setShowPortfolio] = useState(userProfile.showPortfolio ?? true)
-  const [showServices, setShowServices] = useState(userProfile.showServices ?? true)
-  const [showCalculator, setShowCalculator] = useState(userProfile.showCalculator ?? true)
-  const [showReviews, setShowReviews] = useState(userProfile.showReviews ?? true)
   
   // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -596,64 +584,9 @@ export function SettingsPage() {
 
                     <Separator />
 
-                    {/* Section visibility */}
-                    <div className="space-y-4">
-                      <Label className="flex items-center gap-2">
-                        <Edit3 className="size-4" />
-                        Отображаемые разделы
-                      </Label>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Портфолио</Label>
-                          <p className="text-sm text-muted-foreground">
-                            Показывать галерею работ
-                          </p>
-                        </div>
-                        <Switch
-                          checked={showPortfolio}
-                          onCheckedChange={setShowPortfolio}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Услуги и товары</Label>
-                          <p className="text-sm text-muted-foreground">
-                            Показывать список услуг и товаров
-                          </p>
-                        </div>
-                        <Switch
-                          checked={showServices}
-                          onCheckedChange={setShowServices}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Калькулятор цен</Label>
-                          <p className="text-sm text-muted-foreground">
-                            Показывать калькулятор стоимости
-                          </p>
-                        </div>
-                        <Switch
-                          checked={showCalculator}
-                          onCheckedChange={setShowCalculator}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label>Отзывы</Label>
-                          <p className="text-sm text-muted-foreground">
-                            Показывать отзывы клиентов
-                          </p>
-                        </div>
-                        <Switch
-                          checked={showReviews}
-                          onCheckedChange={setShowReviews}
-                        />
-                      </div>
+                    <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                      Разделы профиля мастера будут отображаться автоматически по наличию данных (моки).
+                      Переключатели скрыты — позже это будет управляться бэкендом/БД.
                     </div>
 
                     <div className="flex justify-end">

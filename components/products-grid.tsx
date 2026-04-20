@@ -3,11 +3,12 @@
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Star, ShoppingCart, Heart, MoreVertical, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Star, MessageSquare, Heart, MoreVertical, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ImageCarousel } from "@/components/image-carousel"
 import { ProductEditor } from "@/components/product-editor"
+import { MessageDialog } from "@/components/message-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +66,7 @@ function ProductCard({
 }) {
   const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
+  const [messageOpen, setMessageOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const discount = product.originalPrice
@@ -78,7 +80,10 @@ function ProductCard({
   return (
     <div 
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
-      onClick={handleCardClick}
+      onClick={() => {
+        if (messageOpen) return
+        handleCardClick()
+      }}
     >
       {/* Image Carousel */}
       <div className="relative">
@@ -219,14 +224,26 @@ function ProductCard({
             disabled={!product.inStock}
             onClick={(e) => {
               e.stopPropagation()
-              // Add to cart logic here
+              setMessageOpen(true)
             }}
           >
-            <ShoppingCart className="size-4" />
-            В корзину
+            <MessageSquare className="size-4" />
+            Написать мастеру
           </Button>
         )}
       </div>
+
+      {!isOwner && (
+        <MessageDialog
+          open={messageOpen}
+          onOpenChange={setMessageOpen}
+          artist={{
+            id: product.seller.id,
+            name: product.seller.name,
+            avatar: product.seller.avatar,
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { 
   Search, 
-  ShoppingCart, 
+  MessageSquare,
   Star, 
   Heart,
   Grid3X3,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select"
 import { SmartFiltersDesktop, SmartFiltersMobile, ActiveFiltersBadges } from "@/components/smart-filters"
 import { productsFiltersConfig } from "@/lib/filters-config"
+import { MessageDialog } from "@/components/message-dialog"
 import { cn } from "@/lib/utils"
 import type { ActiveFilters, FiltersConfig } from "@/lib/types"
 
@@ -56,6 +57,7 @@ interface Product {
 function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid" | "list" }) {
   const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
+  const [messageOpen, setMessageOpen] = useState(false)
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
@@ -68,7 +70,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
     return (
       <div 
         className="group flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-lg sm:gap-6 cursor-pointer"
-        onClick={handleCardClick}
+        onClick={() => {
+          if (messageOpen) return
+          handleCardClick()
+        }}
       >
         {/* Image */}
         <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-40">
@@ -145,11 +150,11 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
               disabled={!product.inStock}
               onClick={(e) => {
                 e.stopPropagation()
-                // Add to cart logic here
+                setMessageOpen(true)
               }}
             >
-              <ShoppingCart className="size-4" />
-              <span className="hidden sm:inline">В корзину</span>
+              <MessageSquare className="size-4" />
+              <span className="hidden sm:inline">Написать мастеру</span>
             </Button>
           </div>
         </div>
@@ -160,7 +165,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
   return (
     <div 
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
-      onClick={handleCardClick}
+      onClick={() => {
+        if (messageOpen) return
+        handleCardClick()
+      }}
     >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
@@ -237,13 +245,23 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
           disabled={!product.inStock}
           onClick={(e) => {
             e.stopPropagation()
-            // Add to cart logic here
+            setMessageOpen(true)
           }}
         >
-          <ShoppingCart className="size-4" />
-          В корзину
+          <MessageSquare className="size-4" />
+          Написать мастеру
         </Button>
       </div>
+
+      <MessageDialog
+        open={messageOpen}
+        onOpenChange={setMessageOpen}
+        artist={{
+          id: product.seller.id,
+          name: product.seller.name,
+          avatar: product.seller.avatar,
+        }}
+      />
     </div>
   )
 }

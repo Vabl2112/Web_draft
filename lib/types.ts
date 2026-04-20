@@ -1,3 +1,20 @@
+/** Какие вкладки профиля показывать посетителям (настраивает владелец-мастер). */
+export interface SectionVisibility {
+  portfolio: boolean
+  services: boolean
+  products: boolean
+  calculator: boolean
+  reviews: boolean
+}
+
+export const DEFAULT_SECTION_VISIBILITY: SectionVisibility = {
+  portfolio: true,
+  services: true,
+  products: true,
+  calculator: true,
+  reviews: true,
+}
+
 export interface Artist {
   id: string
   name: string
@@ -9,6 +26,15 @@ export interface Artist {
   metro: string
   about: string
   tags: string[]
+  sectionVisibility?: SectionVisibility
+  socialLinks?: {
+    vk?: string
+    telegram?: string
+    instagram?: string
+    max?: string
+    boosty?: string
+    website?: string
+  }
   badges: {
     icon: string
     label: string

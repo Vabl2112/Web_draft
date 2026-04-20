@@ -11,8 +11,6 @@ import {
   MoreVertical,
   Check,
   CheckCheck,
-  Phone,
-  Video,
   Trash2,
   Archive,
   Pin
@@ -428,12 +426,6 @@ export function MessagesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground">
-                        <Phone className="size-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-muted-foreground">
-                        <Video className="size-5" />
-                      </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="text-muted-foreground">

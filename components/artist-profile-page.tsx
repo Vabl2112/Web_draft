@@ -1,6 +1,6 @@
-"use client"
+﻿"use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { Plus, Edit2, Trash2 } from "lucide-react"
 import { Header } from "@/components/header"
@@ -20,7 +20,11 @@ import { ServiceEditor } from "@/components/service-editor"
 import { ProductEditor } from "@/components/product-editor"
 import { CalculatorEditor } from "@/components/calculator-editor"
 import { useAuth } from "@/lib/auth-context"
-import type { ArtistProfile } from "@/lib/types"
+import {
+  DEFAULT_SECTION_VISIBILITY,
+  type ArtistProfile,
+  type SectionVisibility,
+} from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -143,9 +147,51 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
     // In real app: POST to API and mutate
   }
 
-  const handleSaveHeader = (data: any) => {
-    console.log("[v0] Saving header:", data)
-    // In real app: PUT to API and mutate
+  const headerEditorInitial = useMemo(() => {
+    if (!data?.artist) return undefined
+    const a = data.artist
+    return {
+      name: a.name,
+      title: a.title,
+      avatar: a.avatar,
+      bio: a.about,
+      tags: [...a.tags],
+      location: a.location,
+      metro: a.metro,
+      socialLinks: a.socialLinks ? { ...a.socialLinks } : undefined,
+      sectionVisibility: a.sectionVisibility ? { ...a.sectionVisibility } : undefined,
+    }
+  }, [data])
+
+  const handleSaveHeader = (payload: {
+    name: string
+    title: string
+    avatar: string
+    bio: string
+    tags: string[]
+    location: string
+    metro: string
+    socialLinks?: ArtistProfile["artist"]["socialLinks"]
+    sectionVisibility: SectionVisibility
+  }) => {
+    mutate((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        artist: {
+          ...prev.artist,
+          name: payload.name,
+          title: payload.title,
+          avatar: payload.avatar,
+          about: payload.bio,
+          tags: payload.tags,
+          location: payload.location,
+          metro: payload.metro,
+          socialLinks: payload.socialLinks ?? prev.artist.socialLinks,
+          sectionVisibility: payload.sectionVisibility,
+        },
+      }
+    }, { revalidate: false })
   }
 
   if (error) {
@@ -159,26 +205,18 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
+      {isOwner && (
+        <div className="border-b border-border bg-muted/20 shadow-sm">
+          <div className="mx-auto max-w-6xl px-4 pb-3 pt-3">
+            <MasterHeaderEditor initialData={headerEditorInitial} onSave={handleSaveHeader} />
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Profile Section */}
         <section className="border-b border-border pb-8">
-          {isOwner && (
-            <div className="mb-6 flex justify-end">
-              <MasterHeaderEditor 
-                initialData={data?.artist ? {
-                  name: data.artist.name,
-                  title: data.artist.title,
-                  avatar: data.artist.avatar,
-                  bio: data.artist.about,
-                  tags: data.artist.tags,
-                  location: data.artist.location,
-                  metro: data.artist.metro,
-                } : undefined}
-                onSave={handleSaveHeader}
-              />
-            </div>
-          )}
           {isLoading ? (
             <ProfileSkeleton />
           ) : data ? (
@@ -189,7 +227,12 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
         {/* Tabs Section */}
         <section className="pt-6">
           {(() => {
-            const tabs: TabItem[] = [
+            const visibility: SectionVisibility = {
+              ...DEFAULT_SECTION_VISIBILITY,
+              ...data?.artist.sectionVisibility,
+            }
+
+            const allTabs: TabItem[] = [
               {
                 id: "portfolio",
                 label: "Портфолио",
@@ -290,10 +333,25 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
                 content: data ? <ReviewsCard reviews={data.reviews} /> : null
               }
             ]
+
+            const tabs = allTabs.filter(
+              tab => visibility[tab.id as keyof SectionVisibility] !== false
+            )
+
+            if (tabs.length === 0) {
+              return (
+                <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                  {isOwner
+                    ? "Ни один раздел не отображается. Включите вкладки в «Редактировать профиль мастера»."
+                    : "На этой странице пока нет разделов."}
+                </p>
+              )
+            }
+
             return (
-              <DynamicTabs 
-                tabs={tabs} 
-                defaultEnabled={["portfolio", "services", "products", "calculator", "reviews"]} 
+              <DynamicTabs
+                key={tabs.map(t => t.id).join("-")}
+                tabs={tabs}
               />
             )
           })()}
@@ -304,3 +362,4 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
     </div>
   )
 }
+

@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Star, MapPin, MessageSquare, Heart, Share2 } from "lucide-react"
+import Link from "next/link"
+import { Star, MapPin, MessageSquare, Heart, Share2, Instagram, Send, Globe } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MessageDialog } from "@/components/message-dialog"
+import { BoostyIcon, MaxIcon, VkIcon } from "@/components/social-icons"
 import { cn } from "@/lib/utils"
 import type { Artist } from "@/lib/types"
 
@@ -16,6 +18,8 @@ interface ProfileCardProps {
 export function ProfileCard({ artist }: ProfileCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [messageOpen, setMessageOpen] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const socialLinks = artist.socialLinks
 
   return (
     <div className="flex flex-col gap-6 pb-6 lg:flex-row lg:items-start lg:gap-8">
@@ -43,10 +47,28 @@ export function ProfileCard({ artist }: ProfileCardProps) {
                 variant="outline"
                 size="icon"
                 className="shrink-0"
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={() => setIsSubscribed(!isSubscribed)}
               >
-                <Heart className={cn("size-5", isFavorite && "fill-destructive text-destructive")} />
+                <Heart className={cn("size-5", isSubscribed && "fill-destructive text-destructive")} />
               </Button>
+              {socialLinks && (
+                <div className="flex gap-1">
+                  {socialLinks.telegram && (
+                    <Button variant="outline" size="icon" className="shrink-0" asChild>
+                      <Link href={socialLinks.telegram} target="_blank" rel="noreferrer">
+                        <Send className="size-5" />
+                      </Link>
+                    </Button>
+                  )}
+                  {socialLinks.instagram && (
+                    <Button variant="outline" size="icon" className="shrink-0" asChild>
+                      <Link href={socialLinks.instagram} target="_blank" rel="noreferrer">
+                        <Instagram className="size-5" />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
               <Button variant="outline" size="icon" className="shrink-0">
                 <Share2 className="size-5" />
               </Button>
@@ -83,16 +105,64 @@ export function ProfileCard({ artist }: ProfileCardProps) {
             variant="outline"
             size="lg"
             className="hidden gap-2 lg:flex"
-            onClick={() => setIsFavorite(!isFavorite)}
+            onClick={() => setIsSubscribed(!isSubscribed)}
           >
-            <Heart className={cn("size-5", isFavorite && "fill-destructive text-destructive")} />
-            {isFavorite ? "В избранном" : "В избранное"}
+            <Heart className={cn("size-5", isSubscribed && "fill-destructive text-destructive")} />
+            {isSubscribed ? "Вы подписаны" : "Подписаться"}
           </Button>
           
           {/* Desktop Share */}
           <Button variant="outline" size="icon" className="hidden size-11 lg:flex">
             <Share2 className="size-5" />
           </Button>
+
+          {/* Social icons */}
+          {socialLinks && (
+            <div className="hidden items-center gap-1 lg:flex">
+              {socialLinks.vk && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.vk} target="_blank" rel="noreferrer" aria-label="VK">
+                    <VkIcon className="size-5" />
+                  </Link>
+                </Button>
+              )}
+              {socialLinks.telegram && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.telegram} target="_blank" rel="noreferrer" aria-label="Telegram">
+                    <Send className="size-5" />
+                  </Link>
+                </Button>
+              )}
+              {socialLinks.instagram && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+                    <Instagram className="size-5" />
+                  </Link>
+                </Button>
+              )}
+              {socialLinks.max && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.max} target="_blank" rel="noreferrer" aria-label="Max">
+                    <MaxIcon className="size-5" />
+                  </Link>
+                </Button>
+              )}
+              {socialLinks.boosty && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.boosty} target="_blank" rel="noreferrer" aria-label="Boosty">
+                    <BoostyIcon className="size-5" />
+                  </Link>
+                </Button>
+              )}
+              {socialLinks.website && (
+                <Button variant="outline" size="icon" className="size-11" asChild>
+                  <Link href={socialLinks.website} target="_blank" rel="noreferrer" aria-label="Сайт">
+                    <Globe className="size-5" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
       
