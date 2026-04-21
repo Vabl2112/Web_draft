@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { DEMO_MASTER_ID } from "@/lib/demo-constants"
 
 export interface User {
@@ -11,7 +11,6 @@ export interface User {
   bio?: string
   tags?: string[]
   location?: string
-  /** Телефон в личном кабинете (демо) */
   phone?: string
 }
 
@@ -27,8 +26,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Demo user for testing - set to null to test unauthenticated state
-const DEMO_USER: User | null = {
+const STORAGE_USER = "egg_auth_user"
+const STORAGE_LOGGED_OUT = "egg_auth_logged_out"
+
+const DEMO_USER: User = {
   id: DEMO_MASTER_ID,
   name: "Алексей Смирнов",
   email: "alexey@example.com",
@@ -39,18 +40,49 @@ const DEMO_USER: User | null = {
   phone: "+7 (999) 123-45-67",
 }
 
+function writeStoredUser(user: User | null) {
+  if (typeof window === "undefined") return
+  if (user) {
+    localStorage.setItem(STORAGE_USER, JSON.stringify(user))
+    localStorage.removeItem(STORAGE_LOGGED_OUT)
+  } else {
+    localStorage.removeItem(STORAGE_USER)
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      setUser(DEMO_USER)
+    if (typeof window === "undefined") return
+
+    if (localStorage.getItem(STORAGE_LOGGED_OUT) === "1") {
+      setUser(null)
       setIsLoading(false)
+      return
     }
-    checkAuth()
+
+    const raw = localStorage.getItem(STORAGE_USER)
+    if (raw) {
+      try {
+        setUser(JSON.parse(raw) as User)
+        setIsLoading(false)
+        return
+      } catch {
+        localStorage.removeItem(STORAGE_USER)
+      }
+    }
+
+    setUser(DEMO_USER)
+    setIsLoading(false)
   }, [])
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      writeStoredUser(user)
+    }
+  }, [user, isLoading])
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
@@ -59,19 +91,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_LOGGED_OUT, "1")
+      localStorage.removeItem(STORAGE_USER)
+    }
     setUser(null)
-  }
+  }, [])
 
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     await new Promise(resolve => setTimeout(resolve, 500))
-    setUser({
+    const newUser: User = {
       id: `user-${Date.now()}`,
       name,
       email,
       avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
-    })
+    }
+    setUser(newUser)
     setIsLoading(false)
   }
 
@@ -80,15 +117,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
-      isLoading, 
-      login, 
-      logout, 
-      register,
-      updateProfile,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+        register,
+        updateProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

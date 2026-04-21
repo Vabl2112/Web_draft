@@ -1,92 +1,80 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Phone, Mail, Clock, Instagram, Send } from "lucide-react"
+import { Mail, Instagram, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 const footerLinks = {
   company: [
     { href: "/about", label: "О нас" },
-    { href: "/masters", label: "Наши мастера" },
-    { href: "/gallery", label: "Галерея работ" },
+    { href: "/masters", label: "Авторы" },
+    { href: "/gallery", label: "Галерея" },
     { href: "/careers", label: "Вакансии" },
   ],
   services: [
     { href: "/services", label: "Услуги" },
     { href: "/products", label: "Товары" },
-    { href: "/calculator", label: "Калькулятор" },
-    { href: "/gift-cards", label: "Подарочные сертификаты" },
+    { href: "/faq", label: "Вопросы" },
   ],
   support: [
-    { href: "/faq", label: "Частые вопросы" },
-    { href: "/help", label: "Центр помощи" },
-    { href: "/contact", label: "Связаться с нами" },
-    { href: "/privacy", label: "Политика конфиденциальности" },
+    { href: "/help", label: "Помощь" },
+    { href: "/contact", label: "Связаться" },
+    { href: "/privacy", label: "Конфиденциальность" },
   ],
 }
-
-const socialLinks = [
-  { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
-  { href: "https://t.me", icon: Send, label: "Telegram" },
-]
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto max-w-7xl px-4 py-12">
-        {/* Main Footer Content */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Brand & Contact */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block">
               <span className="text-3xl font-bold text-amber-500">EGG</span>
             </Link>
-            <p className="mt-4 max-w-sm text-muted-foreground">
-              Маркетплейс для творческих людей. Покупайте уникальные работы, заказывайте услуги у мастеров или продавайте свои изделия.
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              Пространство для авторов оригинальных вещей и услуг и для тех, кто их ищет — в одном
+              интерфейсе.
             </p>
-            
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin className="size-5 shrink-0 text-muted-foreground" />
-                <span>Москва, ул. Тверская, 15, офис 301</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="size-5 shrink-0 text-muted-foreground" />
-                <a href="tel:+74951234567" className="hover:text-foreground/70">+7 (495) 123-45-67</a>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="size-5 shrink-0 text-muted-foreground" />
-                <a href="mailto:hello@egg.market" className="hover:text-foreground/70">hello@egg.market</a>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Clock className="size-5 shrink-0 text-muted-foreground" />
-                <span>Пн-Вс: 10:00 - 22:00</span>
-              </div>
-            </div>
 
-            {/* Social Links */}
-            <div className="mt-6 flex gap-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex size-10 items-center justify-center rounded-full bg-muted transition-colors hover:bg-muted/80"
-                  aria-label={social.label}
+            <div className="mt-8">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Соцсети и почта
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ссылки появятся здесь — пока заглушки под Telegram, Instagram и email.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span
+                  className="inline-flex size-11 items-center justify-center rounded-full border border-dashed border-border bg-muted/40 text-muted-foreground"
+                  title="Telegram — скоро"
+                  aria-hidden
                 >
-                  <social.icon className="size-5" />
+                  <Send className="size-5 opacity-60" />
+                </span>
+                <span
+                  className="inline-flex size-11 items-center justify-center rounded-full border border-dashed border-border bg-muted/40 text-muted-foreground"
+                  title="Instagram — скоро"
+                  aria-hidden
+                >
+                  <Instagram className="size-5 opacity-60" />
+                </span>
+                <a
+                  href="mailto:hello@egg.market"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  <Mail className="size-4" />
+                  hello@egg.market
                 </a>
-              ))}
+              </div>
             </div>
           </div>
 
-          {/* Links - Company */}
           <div>
-            <h3 className="mb-4 font-semibold">Компания</h3>
+            <h3 className="mb-4 text-sm font-semibold">Компания</h3>
             <ul className="space-y-1">
-              {footerLinks.company.map((link) => (
+              {footerLinks.company.map(link => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -99,11 +87,10 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Links - Services */}
           <div>
-            <h3 className="mb-4 font-semibold">Услуги</h3>
+            <h3 className="mb-4 text-sm font-semibold">Разделы</h3>
             <ul className="space-y-1">
-              {footerLinks.services.map((link) => (
+              {footerLinks.services.map(link => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -116,11 +103,10 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Links - Support */}
           <div>
-            <h3 className="mb-4 font-semibold">Поддержка</h3>
+            <h3 className="mb-4 text-sm font-semibold">Поддержка</h3>
             <ul className="space-y-1">
-              {footerLinks.support.map((link) => (
+              {footerLinks.support.map(link => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -134,36 +120,32 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Newsletter */}
-        <div className="mt-12 rounded-2xl bg-muted p-6 sm:p-8">
+        <div className="mt-12 rounded-2xl border border-border/80 bg-muted/30 p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Подпишитесь на новости</h3>
+              <h3 className="text-base font-semibold">Рассылка</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Получайте информацию о скидках и новых работах мастеров
+                Редкие письма о новых возможностях платформы — без спама.
               </p>
             </div>
-            <div className="flex gap-2 sm:w-auto sm:min-w-80">
+            <div className="flex w-full gap-2 sm:w-auto sm:min-w-80">
               <Input
                 type="email"
-                placeholder="Ваш email"
-                className="flex-1 rounded-full bg-background"
+                placeholder="Email"
+                className="flex-1 rounded-full border-border bg-background"
               />
-              <Button className="shrink-0 rounded-full px-6">
-                Подписаться
+              <Button className="shrink-0 rounded-full px-6" type="button">
+                Ок
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            2024 EGG Market. Все права защищены.
-          </p>
-          <div className="flex gap-6">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} EGG</p>
+          <div className="flex flex-wrap justify-center gap-6">
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
-              Условия использования
+              Условия
             </Link>
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
               Конфиденциальность
