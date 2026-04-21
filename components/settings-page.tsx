@@ -52,15 +52,11 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { cn } from "@/lib/utils"
 
-type UserRole = "user" | "master"
-
 interface UserProfile {
   name: string
   email: string
   phone: string
   avatar: string
-  role: UserRole
-  // Master-specific fields
   bio?: string
   tags?: string[]
 }
@@ -70,12 +66,17 @@ const userProfile: UserProfile = {
   email: "alexey@example.com",
   phone: "+7 (999) 123-45-67",
   avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
-  role: "master", // Change to "user" to test user mode
   bio: "Профессиональный тату-мастер с 10-летним опытом. Специализируюсь на японской традиционной татуировке и неотраде.",
   tags: ["Японский стиль", "Неотрад", "Блэкворк", "Орнаментал"],
 }
 
-type SettingsSection = "profile" | "notifications" | "privacy" | "appearance" | "language"
+type SettingsSection =
+  | "profile"
+  | "master-profile"
+  | "notifications"
+  | "privacy"
+  | "appearance"
+  | "language"
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
@@ -128,6 +129,7 @@ export function SettingsPage() {
 
   const menuItems = [
     { id: "profile" as const, label: "Профиль", icon: User },
+    { id: "master-profile" as const, label: "Страница мастера", icon: Briefcase },
     { id: "notifications" as const, label: "Уведомления", icon: Bell },
     { id: "privacy" as const, label: "Приватность", icon: Shield },
     { id: "appearance" as const, label: "Внешний вид", icon: Palette },
@@ -489,8 +491,8 @@ export function SettingsPage() {
                 </Card>
               )}
               
-              {/* Master Profile Section - Only for masters */}
-              {activeSection === "master-profile" && userProfile.role === "master" && (
+              {/* Публичная страница мастера — доступна каждому аккаунту */}
+              {activeSection === "master-profile" && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Профиль мастера</CardTitle>

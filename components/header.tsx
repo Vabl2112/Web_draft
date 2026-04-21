@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check, Briefcase, ArrowRight, LogIn } from "lucide-react"
+import { Bell, MessageSquare, ChevronDown, MapPin, Menu, X, Check, ArrowRight, LogIn } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -34,7 +34,7 @@ const cities = [
 
 const notifications = [
   { id: 1, title: "Новый отзыв", message: "Алексей оставил отзыв о вашей работе", time: "5 мин назад", unread: true },
-  { id: 2, title: "Запись подтверждена", message: "Сеанс на 15 апреля в 14:00", time: "1 час назад", unread: true },
+  { id: 2, title: "Новый подписчик", message: "Кто-то добавил вас в избранное", time: "1 час назад", unread: true },
   { id: 3, title: "Новое сообщение", message: "Мария: Здравствуйте, хотела уточнить...", time: "3 часа назад", unread: false },
 ]
 
@@ -197,43 +197,21 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="hidden items-center gap-2 px-2 sm:flex">
                     <div className="relative">
-                      <Avatar className={cn(
-                        "size-8",
-                        user.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
-                      )}>
+                      <Avatar className="size-8">
                         <AvatarImage src={user.avatar} />
                         <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
                       </Avatar>
-                      {user.role === "master" && (
-                        <div className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white">
-                          <Briefcase className="size-2.5" />
-                        </div>
-                      )}
                     </div>
                     <span className="hidden text-sm font-medium lg:inline-block">{user.name}</span>
                     <ChevronDown className="size-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {user.role === "master" && (
-                    <>
-                      <div className="flex items-center gap-2 px-2 py-1.5">
-                        <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10">
-                          <Briefcase className="mr-1 size-3" />
-                          Мастер
-                        </Badge>
-                      </div>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
-                    <Link href={user.role === "master" ? `/master/${user.id}` : "/profile"}>Мой профиль</Link>
+                    <Link href={`/master/${user.id}`}>Страница мастера</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/favorites">Избранное</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/appointments">Мои записи</Link>
+                    <Link href="/profile">Личный кабинет</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings">Настройки</Link>
@@ -291,29 +269,29 @@ export function Header() {
                 {isAuthenticated && user ? (
                   <div className="flex items-center gap-3 border-b border-border p-4">
                     <div className="relative">
-                      <Avatar className={cn(
-                        "size-12",
-                        user.role === "master" && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background"
-                      )}>
+                      <Avatar className="size-12">
                         <AvatarImage src={user.avatar} />
                         <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
                       </Avatar>
-                      {user.role === "master" && (
-                        <div className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-amber-500 text-white">
-                          <Briefcase className="size-3" />
-                        </div>
-                      )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{user.name}</p>
-                        {user.role === "master" && (
-                          <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 text-xs">
-                            Мастер
-                          </Badge>
-                        )}
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{user.name}</p>
                       <p className="text-sm text-muted-foreground">{currentCity?.name}</p>
+                      <div className="mt-2 flex flex-col gap-1">
+                        <SheetClose asChild>
+                          <Link
+                            href={`/master/${user.id}`}
+                            className="text-sm font-medium text-amber-600 hover:underline"
+                          >
+                            Страница мастера
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/profile" className="text-sm text-muted-foreground hover:text-foreground">
+                            Личный кабинет
+                          </Link>
+                        </SheetClose>
+                      </div>
                     </div>
                   </div>
                 ) : (

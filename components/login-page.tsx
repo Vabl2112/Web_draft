@@ -2,14 +2,18 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/lib/auth-context"
 
 export function LoginPage() {
+  const router = useRouter()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -19,9 +23,12 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsLoading(false)
+    try {
+      await login(email, password)
+      router.push("/")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -43,6 +50,9 @@ export function LoginPage() {
             </h1>
             <p className="mt-2 text-muted-foreground">
               Войдите в свой аккаунт, чтобы продолжить
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Демо: достаточно любого email и пароля — подставляется тестовый аккаунт, совпадающий с моком страницы мастера.
             </p>
           </div>
 

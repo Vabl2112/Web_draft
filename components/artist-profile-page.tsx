@@ -113,7 +113,7 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
   )
   
   // Check if the current user is the owner of this profile
-  const isOwner = isAuthenticated && user?.role === "master" && (!masterId || user.id === masterId)
+  const isOwner = isAuthenticated && (!masterId || user?.id === masterId)
 
   // Mock products data - in real app this would come from API
   const [products] = useState([
