@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
+import { useSuppressNavAfterDropdownClose } from "@/hooks/use-suppress-nav-after-dropdown"
 
 interface Product {
   id: string
@@ -69,6 +71,9 @@ function ProductCard({
   const [messageOpen, setMessageOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
+  const { onDropdownOpenChange, allowCardNavigation, scheduleBlockCardNav } =
+    useSuppressNavAfterDropdownClose()
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
@@ -78,10 +83,11 @@ function ProductCard({
   }
 
   return (
-    <div 
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
+    <div
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg"
       onClick={() => {
         if (messageOpen) return
+        if (!allowCardNavigation()) return
         handleCardClick()
       }}
     >
@@ -94,107 +100,107 @@ function ProductCard({
           className="rounded-none rounded-t-2xl"
           onImageClick={() => handleCardClick()}
         />
-        
+
         {discount && (
           <Badge className="absolute left-3 top-3 z-10 bg-destructive text-destructive-foreground">
             -{discount}%
           </Badge>
         )}
-        
+
         {!product.inStock && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <Badge variant="secondary" className="text-base">Нет в наличии</Badge>
+            <Badge variant="secondary" className="text-base">
+              Нет в наличии
+            </Badge>
           </div>
         )}
-        
-        {/* Like button */}
-        {!isOwner && (
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-3 top-3 z-10 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsLiked(!isLiked)
-            }}
-          >
-            <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-          </Button>
-        )}
-        
-        {/* Actions menu for owner */}
-        {isOwner && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="secondary" 
-                size="icon" 
-                className="absolute right-3 top-3 z-10 size-8 opacity-0 transition-opacity group-hover:opacity-100"
+
+        <div
+          className="absolute right-2 top-2 z-20 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={e => e.stopPropagation()}
+        >
+          {isOwner ? (
+            <DropdownMenu
+              open={actionsMenuOpen}
+              onOpenChange={(o) => {
+                setActionsMenuOpen(o)
+                onDropdownOpenChange(o)
+              }}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+                >
+                  <MoreVertical className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation()
+                    setEditDialogOpen(true)
+                  }}
+                >
+                  <Edit2 className="mr-2 size-4" />
+                  Редактировать
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={e => {
+                    e.stopPropagation()
+                    setDeleteDialogOpen(true)
+                  }}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Удалить
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <EntityShareMenuItems
+                  sharePath={`/product/${product.id}`}
+                  shareTitle={product.title}
+                  reportKind="товар"
+                  showReport={false}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <EntityActionsDropdown
+                open={actionsMenuOpen}
+                onOpenChange={(o) => {
+                  setActionsMenuOpen(o)
+                  onDropdownOpenChange(o)
+                }}
+                sharePath={`/product/${product.id}`}
+                shareTitle={product.title}
+                reportKind="товар"
+                icon="vertical"
+                align="end"
+                triggerClassName="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+              />
+              <Button
+                variant="secondary"
+                size="icon"
+                className="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+                onClick={e => {
+                  e.stopPropagation()
+                  setIsLiked(!isLiked)
+                }}
               >
-                <MoreVertical className="size-4" />
+                <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                <Edit2 className="mr-2 size-4" />
-                Редактировать
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive focus:text-destructive"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Удалить
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {/* Edit dialog */}
-        <ProductEditor
-          mode="edit"
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          initialData={{
-            ...product,
-            images: product.images.map((url, i) => ({ id: String(i), url }))
-          }}
-          onSave={(data) => {
-            onEdit?.({ 
-              ...product, 
-              ...data, 
-              images: data.images.map(img => img.url) 
-            })
-            setEditDialogOpen(false)
-          }}
-        />
-
-        {/* Delete confirmation dialog */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Удалить товар?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Это действие нельзя отменить. Товар будет удален из вашего профиля.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => onDelete?.(product.id)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Удалить
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-semibold text-foreground">
+        <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-foreground">
           {product.title}
         </h3>
         
@@ -206,7 +212,7 @@ function ProductCard({
         </div>
 
         {/* Price */}
-        <div className="mt-3 flex items-baseline gap-2">
+        <div className="mt-3 flex flex-wrap items-baseline justify-center gap-2 text-center">
           <span className="text-xl font-bold text-foreground">
             {product.price.toLocaleString("ru-RU")} &#8381;
           </span>
@@ -236,7 +242,10 @@ function ProductCard({
       {!isOwner && (
         <MessageDialog
           open={messageOpen}
-          onOpenChange={setMessageOpen}
+          onOpenChange={(open) => {
+            setMessageOpen(open)
+            if (!open) scheduleBlockCardNav()
+          }}
           artist={{
             id: product.seller.id,
             name: product.seller.name,
@@ -244,6 +253,44 @@ function ProductCard({
           }}
         />
       )}
+
+      <ProductEditor
+        mode="edit"
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        initialData={{
+          ...product,
+          images: product.images.map((url, i) => ({ id: String(i), url })),
+        }}
+        onSave={data => {
+          onEdit?.({
+            ...product,
+            ...data,
+            images: data.images.map(img => img.url),
+          })
+          setEditDialogOpen(false)
+        }}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить товар?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Товар будет удален из вашего профиля.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete?.(product.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

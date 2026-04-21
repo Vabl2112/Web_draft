@@ -31,7 +31,9 @@ import {
 import { SmartFiltersDesktop, SmartFiltersMobile, ActiveFiltersBadges } from "@/components/smart-filters"
 import { productsFiltersConfig } from "@/lib/filters-config"
 import { MessageDialog } from "@/components/message-dialog"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
+import { useSuppressNavAfterDropdownClose } from "@/hooks/use-suppress-nav-after-dropdown"
 import type { ActiveFilters, FiltersConfig } from "@/lib/types"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -58,6 +60,9 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
   const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const [messageOpen, setMessageOpen] = useState(false)
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
+  const { onDropdownOpenChange, allowCardNavigation, scheduleBlockCardNav } =
+    useSuppressNavAfterDropdownClose()
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
@@ -72,6 +77,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
         className="group flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/20 hover:shadow-lg sm:gap-6 cursor-pointer"
         onClick={() => {
           if (messageOpen) return
+          if (!allowCardNavigation()) return
           handleCardClick()
         }}
       >
@@ -93,20 +99,34 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 font-semibold text-foreground">
+            <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-foreground">
               {product.title}
             </h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              onClick={(e) => {
-                e.stopPropagation()
-                setIsLiked(!isLiked)
-              }}
-            >
-              <Heart className={cn("size-5", isLiked && "fill-destructive text-destructive")} />
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <EntityActionsDropdown
+                open={actionsMenuOpen}
+                onOpenChange={(o) => {
+                  setActionsMenuOpen(o)
+                  onDropdownOpenChange(o)
+                }}
+                sharePath={`/product/${product.id}`}
+                shareTitle={product.title}
+                reportKind="товар"
+                icon="vertical"
+                triggerClassName="size-8 border border-border bg-background shadow-sm"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsLiked(!isLiked)
+                }}
+              >
+                <Heart className={cn("size-5", isLiked && "fill-destructive text-destructive")} />
+              </Button>
+            </div>
           </div>
           
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
@@ -167,6 +187,7 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-foreground/20 hover:shadow-lg cursor-pointer"
       onClick={() => {
         if (messageOpen) return
+        if (!allowCardNavigation()) return
         handleCardClick()
       }}
     >
@@ -188,22 +209,36 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
             <Badge variant="secondary" className="text-base">Нет в наличии</Badge>
           </div>
         )}
-        <Button
-          variant="secondary"
-          size="icon"
-          className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsLiked(!isLiked)
-          }}
-        >
-          <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-        </Button>
+        <div className="absolute right-3 top-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <EntityActionsDropdown
+            open={actionsMenuOpen}
+            onOpenChange={(o) => {
+              setActionsMenuOpen(o)
+              onDropdownOpenChange(o)
+            }}
+            sharePath={`/product/${product.id}`}
+            shareTitle={product.title}
+            reportKind="товар"
+            icon="vertical"
+            triggerClassName="size-8 bg-background/90 shadow-sm"
+          />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-8 bg-background/90 shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsLiked(!isLiked)
+            }}
+          >
+            <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-semibold text-foreground">
+        <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-foreground">
           {product.title}
         </h3>
         
@@ -255,7 +290,10 @@ function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid"
 
       <MessageDialog
         open={messageOpen}
-        onOpenChange={setMessageOpen}
+        onOpenChange={(open) => {
+          setMessageOpen(open)
+          if (!open) scheduleBlockCardNav()
+        }}
         artist={{
           id: product.seller.id,
           name: product.seller.name,

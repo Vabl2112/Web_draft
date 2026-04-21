@@ -11,7 +11,6 @@ import {
   MapPin, 
   Star, 
   Heart,
-  Share2,
   ChevronLeft,
   ChevronRight,
   MessageCircle
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
 
 interface ServiceDetailPageProps {
@@ -169,6 +169,13 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
                   
                   {/* Actions */}
                   <div className="absolute left-3 top-3 flex gap-2">
+                    <EntityActionsDropdown
+                      sharePath={`/service/${serviceId}`}
+                      shareTitle={service.title}
+                      reportKind="услуга"
+                      icon="vertical"
+                      triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
+                    />
                     <Button
                       variant="secondary"
                       size="icon"
@@ -179,14 +186,6 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
                       }}
                     >
                       <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="size-9 rounded-full bg-background/80 backdrop-blur-sm"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Share2 className="size-4" />
                     </Button>
                   </div>
                 </div>

@@ -32,7 +32,7 @@ export function DynamicTabs({ tabs }: DynamicTabsProps) {
         id={tablistId}
         role="tablist"
         aria-orientation="horizontal"
-        className="flex h-auto flex-wrap justify-start gap-1 bg-transparent p-0"
+        className="-mx-1 flex h-auto snap-x snap-mandatory flex-nowrap gap-1 overflow-x-auto overflow-y-hidden scroll-smooth rounded-xl border border-border/60 bg-muted/30 p-1 sm:mx-0 sm:flex-wrap sm:overflow-visible"
       >
         {tabs.map(tab => {
           const selected = activeTab?.id === tab.id
@@ -46,10 +46,11 @@ export function DynamicTabs({ tabs }: DynamicTabsProps) {
               aria-controls={panelId}
               tabIndex={selected ? 0 : -1}
               className={cn(
-                "inline-flex items-center rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium transition-colors",
+                "inline-flex min-h-10 shrink-0 snap-start items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all",
                 "text-muted-foreground hover:text-foreground",
-                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-[3px]",
-                selected && "border-foreground text-foreground"
+                "focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-[3px]",
+                selected &&
+                  "bg-background text-foreground shadow-sm ring-1 ring-black/[0.06] dark:ring-white/[0.08]"
               )}
               onClick={() => setActive(tab.id)}
             >
@@ -59,13 +60,11 @@ export function DynamicTabs({ tabs }: DynamicTabsProps) {
         })}
       </div>
 
-      <div className="mt-1 h-px w-full bg-border" />
-
       <div
         id={panelId}
         role="tabpanel"
         aria-labelledby={activeTab ? `${baseId}-tab-${activeTab.id}` : undefined}
-        className="mt-6 outline-none"
+        className="mt-8 outline-none md:mt-10"
       >
         {activeTab?.content ?? null}
       </div>

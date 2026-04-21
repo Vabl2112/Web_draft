@@ -28,17 +28,19 @@ export function AboutCard({ artist }: AboutCardProps) {
         ))}
       </div>
       
-      <div className="grid grid-cols-3 gap-4 border-t border-border pt-4">
-        {artist.badges.map((badge) => {
-          const IconComponent = badgeIconMap[badge.icon] || BadgeCheck
-          return (
-            <div key={badge.label} className="flex flex-col items-center gap-1.5 text-center">
-              <IconComponent className="size-6 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{badge.label}</span>
-            </div>
-          )
-        })}
-      </div>
+      {artist.badges.length > 0 ? (
+        <div className="grid grid-cols-3 gap-4 border-t border-border pt-4">
+          {artist.badges.map(badge => {
+            const IconComponent = badgeIconMap[badge.icon] || BadgeCheck
+            return (
+              <div key={badge.label} className="flex flex-col items-center gap-1.5 text-center">
+                <IconComponent className="size-6 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">{badge.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
     </div>
   )
 }

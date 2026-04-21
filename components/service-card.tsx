@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Clock, Star, TrendingUp, ChevronLeft, ChevronRight, Heart } from "lucide-react"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -60,7 +61,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
 
   return (
     <div 
-      className="group flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+      className="group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Image Section */}
@@ -118,21 +119,41 @@ export function ServiceCard({ service }: ServiceCardProps) {
               Популярно
             </Badge>
           )}
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsLiked(!isLiked)
-            }}
-          >
-            <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-          </Button>
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <EntityActionsDropdown
+              sharePath={`/service/${service.id}`}
+              shareTitle={service.title}
+              reportKind="услуга"
+              icon="vertical"
+              triggerClassName="bg-background/90 shadow-sm"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="size-8 bg-background/90 shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsLiked(!isLiked)
+              }}
+            >
+              <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+            </Button>
+          </div>
         </div>
       )}
 
-      <div className="flex flex-1 flex-col p-4 sm:p-6">
+      <div className="relative flex flex-1 flex-col p-4 sm:p-6">
+        {!hasImages && (
+          <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+            <EntityActionsDropdown
+              sharePath={`/service/${service.id}`}
+              shareTitle={service.title}
+              reportKind="услуга"
+              icon="vertical"
+              triggerClassName="bg-background/90 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+            />
+          </div>
+        )}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">

@@ -28,9 +28,9 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { EntityShareMenuItems } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
 
 export interface PhotoComment {
@@ -90,6 +90,13 @@ export function PhotoDetailModal({
   const [localSaved, setLocalSaved] = useState(photo?.isSaved ?? false)
   const [localLikes, setLocalLikes] = useState(photo?.likes ?? 0)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [pageShareUrl, setPageShareUrl] = useState("")
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setPageShareUrl(window.location.href)
+    }
+  }, [isOpen, photo?.id])
 
   // Sync local state when photo changes (e.g., when navigating between photos)
   useEffect(() => {
@@ -272,9 +279,11 @@ export function PhotoDetailModal({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Пожаловаться</DropdownMenuItem>
-                    <DropdownMenuItem>Копировать ссылку</DropdownMenuItem>
-                    <DropdownMenuItem>Поделиться</DropdownMenuItem>
+                    <EntityShareMenuItems
+                      sharePath={pageShareUrl || "/gallery"}
+                      shareTitle={photo?.title}
+                      reportKind="публикация в галерее"
+                    />
                   </DropdownMenuContent>
                 </DropdownMenu>
                 

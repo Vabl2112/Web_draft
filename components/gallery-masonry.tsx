@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Heart, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
 import type { GalleryImage } from "@/lib/types"
@@ -159,25 +160,36 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   
-                  {/* Like button */}
-                  <Button
-                    variant="secondary"
-                    size="icon"
+                  {/* Меню + лайк */}
+                  <div
                     className={cn(
-                      "absolute right-3 top-3 z-10 transition-all duration-200",
-                      likedImages.has(image.id) 
-                        ? "opacity-100" 
+                      "absolute right-3 top-3 z-10 flex items-center gap-1 transition-all duration-200",
+                      likedImages.has(image.id)
+                        ? "opacity-100"
                         : "opacity-0 group-hover:opacity-100"
                     )}
-                    onClick={(e) => toggleLike(image.id, e)}
                   >
-                    <Heart 
-                      className={cn(
-                        "size-4 transition-all duration-200", 
-                        likedImages.has(image.id) && "fill-destructive text-destructive scale-110"
-                      )} 
+                    <EntityActionsDropdown
+                      sharePath={`/gallery?image=${image.id}`}
+                      shareTitle={image.title}
+                      reportKind="публикация в галерее"
+                      icon="vertical"
+                      triggerClassName="size-8 bg-background/90 shadow-sm"
                     />
-                  </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="size-8 bg-background/90 shadow-sm"
+                      onClick={(e) => toggleLike(image.id, e)}
+                    >
+                      <Heart
+                        className={cn(
+                          "size-4 transition-all duration-200",
+                          likedImages.has(image.id) && "scale-110 fill-destructive text-destructive"
+                        )}
+                      />
+                    </Button>
+                  </div>
                   
                   {/* Hover overlay with stats */}
                   <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">

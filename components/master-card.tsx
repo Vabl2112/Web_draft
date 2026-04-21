@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Star, MapPin, CheckCircle, Clock, Briefcase } from "lucide-react"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,21 +37,41 @@ export function MasterCard({ master }: MasterCardProps) {
 
         {/* Info */}
         <div className="flex min-w-0 flex-1 flex-col text-center sm:text-left">
-          <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-3">
-            <Link href={`/master/${master.id}`}>
-              <h3 className="text-lg font-semibold text-foreground transition-colors hover:text-foreground/80 sm:text-xl">
-                {master.name}
-              </h3>
-            </Link>
-            {master.verified && (
-              <Badge variant="secondary" className="gap-1 bg-green-100 text-green-700">
-                <CheckCircle className="size-3" />
-                Проверен
-              </Badge>
-            )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-3">
+                <Link href={`/master/${master.id}`}>
+                  <h3 className="text-lg font-semibold text-foreground transition-colors hover:text-foreground/80 sm:text-xl">
+                    {master.name}
+                  </h3>
+                </Link>
+                {master.verified && (
+                  <Badge variant="secondary" className="gap-1 bg-green-100 text-green-700">
+                    <CheckCircle className="size-3" />
+                    Проверен
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <EntityActionsDropdown
+              sharePath={`/master/${master.id}`}
+              shareTitle={master.name}
+              reportKind="мастер"
+              icon="vertical"
+              triggerClassName="shrink-0 border border-border bg-background shadow-sm sm:hidden"
+            />
           </div>
-          
-          <p className="mt-1 text-sm text-muted-foreground">{master.specialty}</p>
+
+          <div className="mt-3 flex gap-2 sm:hidden">
+            <Button asChild className="min-w-0 flex-1">
+              <Link href={`/master/${master.id}`}>Профиль</Link>
+            </Button>
+            <Button variant="outline" className="min-w-0 flex-1">
+              Написать
+            </Button>
+          </div>
+
+          <p className="mt-3 text-sm text-muted-foreground sm:mt-1">{master.specialty}</p>
           
           {/* Rating */}
           <div className="mt-2 flex items-center justify-center gap-1 sm:justify-start">
@@ -87,12 +108,19 @@ export function MasterCard({ master }: MasterCardProps) {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mt-4 flex flex-col gap-2 sm:mt-0 sm:shrink-0">
-          <Button asChild className="w-full sm:w-auto">
+        {/* Планшет/десктоп: ⋯ сверху, сразу под ним — кнопки */}
+        <div className="hidden shrink-0 flex-col items-end gap-2 pt-1 sm:flex sm:w-auto">
+          <EntityActionsDropdown
+            sharePath={`/master/${master.id}`}
+            shareTitle={master.name}
+            reportKind="мастер"
+            icon="vertical"
+            triggerClassName="border border-border bg-background shadow-sm"
+          />
+          <Button asChild className="w-[160px]">
             <Link href={`/master/${master.id}`}>Профиль</Link>
           </Button>
-          <Button variant="outline" className="w-full sm:w-auto">
+          <Button variant="outline" className="w-[160px]">
             Написать
           </Button>
         </div>

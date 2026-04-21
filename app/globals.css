@@ -120,6 +120,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Резервируем место под скроллбар: иначе при открытии Dropdown/Dialog body теряет overflow и весь UI «прыгает» вправо */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground;
     /* Support for devices with notch/safe areas */

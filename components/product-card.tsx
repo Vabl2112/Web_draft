@@ -79,7 +79,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 font-semibold text-foreground">
+        <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-foreground">
           {product.title}
         </h3>
         

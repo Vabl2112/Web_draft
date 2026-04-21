@@ -8,7 +8,6 @@ import {
   ArrowLeft, 
   Star, 
   Heart,
-  Share2,
   ChevronLeft,
   ChevronRight,
   Truck,
@@ -26,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
 
 interface ProductDetailPageProps {
@@ -242,7 +242,14 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               )}
               
               {/* Actions */}
-              <div className="absolute right-3 top-3 flex flex-col gap-2">
+              <div className="absolute right-3 top-3 flex flex-row gap-2">
+                <EntityActionsDropdown
+                  sharePath={`/product/${productId}`}
+                  shareTitle={product.title}
+                  reportKind="товар"
+                  icon="vertical"
+                  triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
+                />
                 <Button
                   variant="secondary"
                   size="icon"
@@ -253,14 +260,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   }}
                 >
                   <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="size-9 rounded-full bg-background/80 backdrop-blur-sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Share2 className="size-4" />
                 </Button>
               </div>
             </div>

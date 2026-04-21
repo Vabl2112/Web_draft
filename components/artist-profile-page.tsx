@@ -34,20 +34,39 @@ interface ArtistProfilePageProps {
 
 function ProfileSkeleton() {
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-      <Skeleton className="size-36 shrink-0 rounded-full sm:size-44" />
-      <div className="flex flex-1 flex-col gap-4">
-        <Skeleton className="h-9 w-56" />
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-16 w-full max-w-lg" />
-        <Skeleton className="h-12 w-52" />
-      </div>
-      <div className="flex flex-col items-end gap-4">
-        <Skeleton className="h-6 w-28" />
-        <div className="flex gap-2">
-          <Skeleton className="h-8 w-20 rounded-full" />
-          <Skeleton className="h-8 w-24 rounded-full" />
-          <Skeleton className="h-8 w-28 rounded-full" />
+    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-7 md:p-8">
+      <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
+        <Skeleton className="mx-auto size-28 shrink-0 rounded-full sm:size-36 md:size-40 lg:mx-0" />
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-9 w-48 max-w-full sm:h-10 md:h-11 md:w-64" />
+              <Skeleton className="h-4 w-40 max-w-full" />
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Skeleton className="h-9 w-40 rounded-full sm:w-44" />
+              <Skeleton className="size-9 shrink-0 rounded-full sm:size-10" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-36" />
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:gap-x-10">
+              <Skeleton className="h-24 w-full max-w-prose" />
+              <div className="space-y-2 lg:w-52">
+                <Skeleton className="h-3 w-28" />
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-7 w-16 rounded-full" />
+                  <Skeleton className="h-7 w-20 rounded-full" />
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 border-t border-border/60 pt-6 sm:flex-row">
+            <Skeleton className="h-11 w-full rounded-xl sm:w-36" />
+            <Skeleton className="h-11 w-full rounded-xl sm:w-40" />
+            <Skeleton className="h-11 flex-1 rounded-xl sm:max-w-[12rem]" />
+          </div>
         </div>
       </div>
     </div>
@@ -214,18 +233,18 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 md:py-10">
         {/* Profile Section */}
-        <section className="border-b border-border pb-8">
+        <section className="pb-8 md:pb-10">
           {isLoading ? (
             <ProfileSkeleton />
           ) : data ? (
-            <ProfileCard artist={data.artist} />
+            <ProfileCard artist={data.artist} showReport={!isOwner} />
           ) : null}
         </section>
 
         {/* Tabs Section */}
-        <section className="pt-6">
+        <section className="border-t border-border/70 pt-8 md:pt-10">
           {(() => {
             const visibility: SectionVisibility = {
               ...DEFAULT_SECTION_VISIBILITY,
@@ -251,8 +270,10 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
                     {isLoading ? (
                       <PortfolioSkeleton />
                     ) : data ? (
-                      <PortfolioMasonry 
-                        items={data.portfolio} 
+                      <PortfolioMasonry
+                        items={data.portfolio}
+                        masterId={data.artist.id}
+                        artistName={data.artist.name}
                         isOwner={isOwner}
                       />
                     ) : null}

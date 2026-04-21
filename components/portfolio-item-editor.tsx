@@ -110,11 +110,16 @@ export function PortfolioItemEditor({
     </Button>
   )
 
+  const isControlled = controlledOpen !== undefined
+  const showDialogTrigger = !isControlled || trigger != null
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {showDialogTrigger && (
+        <DialogTrigger asChild>
+          {trigger ?? defaultTrigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>

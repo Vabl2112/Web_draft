@@ -12,18 +12,14 @@ const mockArtistData: ArtistProfile = {
     reviewsCount: 120,
     location: "Москва",
     metro: "м. Бауманская",
-    about: "Более 10 лет опыта, специализируюсь на реализме и графике. В своей работе использую только качественные материалы и индивидуальный подход к каждому клиенту. Специализируюсь на эскизах и графике.!",
+    about: "Более 10 лет опыта, специализируюсь на реализме и графике. В своей работе использую только качественные материалы и индивидуальный подход к каждому клиенту. Специализируюсь на эскизах и графике.",
     tags: ["Реализм", "Графика", "Блэкворк", "Цветная тату"],
     sectionVisibility: { ...DEFAULT_SECTION_VISIBILITY },
     socialLinks: {
       telegram: "https://t.me/example",
       instagram: "https://instagram.com/example",
     },
-    badges: [
-      { icon: "verified", label: "Проверенный мастер" },
-      { icon: "fast", label: "Быстрый ответ" },
-      { icon: "works", label: "Более 500 работ" }
-    ]
+    badges: []
   },
   services: [
     {

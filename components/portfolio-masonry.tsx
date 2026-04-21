@@ -23,10 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
 import type { PortfolioItem } from "@/lib/types"
 
 interface PortfolioMasonryProps {
   items: PortfolioItem[]
+  /** Для ссылок «поделиться» на профиль мастера */
+  masterId: string
   artistName?: string
   artistAvatar?: string
   isOwner?: boolean
@@ -69,13 +72,14 @@ function getImages(item: PortfolioItem): string[] {
   return []
 }
 
-export function PortfolioMasonry({ 
-  items, 
+export function PortfolioMasonry({
+  items,
+  masterId,
   artistName = "Мастер",
   artistAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
   isOwner,
   onEdit,
-  onDelete
+  onDelete,
 }: PortfolioMasonryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -263,38 +267,60 @@ export function PortfolioMasonry({
                     <span className="text-sm font-medium text-white">{item.title}</span>
                   </div>
                   
-                  {/* Actions menu for owner */}
-                  {isOwner && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="secondary" 
-                          size="icon" 
-                          className="absolute right-2 top-2 size-8 opacity-0 transition-opacity group-hover:opacity-100 z-10"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          setEditingItem(item)
-                        }}>
-                          <Edit2 className="mr-2 size-4" />
-                          Редактировать
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive"
-                          onClick={(e) => handleDeleteClick(item.id, e)}
-                        >
-                          <Trash2 className="mr-2 size-4" />
-                          Удалить
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                  <div
+                    className="absolute right-2 top-2 z-20 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    {isOwner ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+                          >
+                            <MoreVertical className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation()
+                              setEditingItem(item)
+                            }}
+                          >
+                            <Edit2 className="mr-2 size-4" />
+                            Редактировать
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={e => handleDeleteClick(item.id, e)}
+                          >
+                            <Trash2 className="mr-2 size-4" />
+                            Удалить
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <EntityShareMenuItems
+                            sharePath={`/master/${masterId}`}
+                            shareTitle={`${item.title} — ${artistName}`}
+                            reportKind="работа в портфолио"
+                            showReport={false}
+                          />
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <EntityActionsDropdown
+                        sharePath={`/master/${masterId}`}
+                        shareTitle={`${item.title} — ${artistName}`}
+                        reportKind="работа в портфолио"
+                        icon="vertical"
+                        align="end"
+                        triggerClassName="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+                      />
+                    )}
+                  </div>
                 </div>
               )
             })}

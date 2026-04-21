@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist_Mono, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import './globals.css'
@@ -84,6 +85,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
+            <Toaster richColors closeButton position="top-center" />
           </AuthProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

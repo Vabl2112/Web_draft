@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
 import type { Service } from "@/lib/types"
 
 interface ServicesCardProps {
@@ -83,17 +84,63 @@ export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCa
           const hasImages = service.images && service.images.length > 0
           
           return (
-            <div 
-              key={service.id} 
-              className="group relative flex flex-col gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-start cursor-pointer"
+            <div
+              key={service.id}
+              className="group relative flex cursor-pointer flex-col gap-4 rounded-lg border border-border p-4 pb-4 pl-4 pr-14 pt-12 transition-colors hover:bg-muted/50 sm:flex-row sm:items-stretch sm:pt-4"
               onClick={() => router.push(`/service/${service.id}`)}
             >
-              {/* Image carousel if available */}
+              <div
+                className="absolute right-2 top-2 z-20 sm:right-3 sm:top-3"
+                onClick={e => e.stopPropagation()}
+              >
+                {isOwner ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="size-9 shrink-0 rounded-md border border-border/70 shadow-sm"
+                      >
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={() => setEditingService(service)}>
+                        <Edit2 className="mr-2 size-4" />
+                        Редактировать
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDeleteClick(service.id)}
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        Удалить
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <EntityShareMenuItems
+                        sharePath={`/service/${service.id}`}
+                        shareTitle={service.title}
+                        reportKind="услуга"
+                        showReport={false}
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <EntityActionsDropdown
+                    sharePath={`/service/${service.id}`}
+                    shareTitle={service.title}
+                    reportKind="услуга"
+                    icon="vertical"
+                    align="end"
+                    triggerClassName="size-9 rounded-md border border-border/70 bg-background shadow-sm"
+                  />
+                )}
+              </div>
+
               {hasImages && (
-                <div 
-                  className="w-full shrink-0 sm:w-32"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="w-full shrink-0 sm:w-32" onClick={e => e.stopPropagation()}>
                   <ImageCarousel
                     images={service.images!}
                     alt={service.title}
@@ -103,51 +150,26 @@ export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCa
                   />
                 </div>
               )}
-              
-              {/* Service info */}
-              <div className="flex flex-1 items-start gap-3">
-                {!hasImages && (
-                  <div className="shrink-0 rounded-lg bg-muted p-2">
-                    <IconComponent className="size-5 text-muted-foreground" />
+
+              <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-3 lg:gap-4">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  {!hasImages && (
+                    <div className="shrink-0 rounded-lg bg-muted p-2">
+                      <IconComponent className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{service.title}</p>
+                    <p className="text-sm text-muted-foreground">{service.description}</p>
                   </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{service.title}</p>
-                  <p className="text-sm text-muted-foreground">{service.description}</p>
                 </div>
-                <p className="shrink-0 whitespace-nowrap font-semibold text-foreground">
-                  {service.price}
-                </p>
+
+                <div className="flex min-w-0 flex-1 items-center justify-center px-1 sm:min-w-[7rem] sm:max-w-[12rem] sm:flex-none sm:px-3">
+                  <p className="text-center text-base font-semibold tabular-nums leading-tight text-foreground">
+                    {service.price}
+                  </p>
+                </div>
               </div>
-              
-              {/* Actions menu for owner */}
-              {isOwner && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute right-2 top-2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setEditingService(service)}>
-                      <Edit2 className="mr-2 size-4" />
-                      Редактировать
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => handleDeleteClick(service.id)}
-                    >
-                      <Trash2 className="mr-2 size-4" />
-                      Удалить
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </div>
           )
         })}
