@@ -2,12 +2,15 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { DEMO_MASTER_ID } from "@/lib/demo-constants"
+import type { BriefsUserRole } from "@/lib/briefs/types"
 
 export interface User {
   id: string
   name: string
   email: string
   avatar: string
+  /** Роль в продукте (Unified Account): лента брифов и отклики — только у мастера */
+  role: BriefsUserRole
   bio?: string
   tags?: string[]
   location?: string
@@ -31,6 +34,7 @@ const STORAGE_LOGGED_OUT = "egg_auth_logged_out"
 
 const DEMO_USER: User = {
   id: DEMO_MASTER_ID,
+  role: "master",
   name: "Алексей Смирнов",
   email: "alexey@example.com",
   avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
@@ -66,7 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const raw = localStorage.getItem(STORAGE_USER)
     if (raw) {
       try {
-        setUser(JSON.parse(raw) as User)
+        const parsed = JSON.parse(raw) as User
+        if (parsed.role !== "master" && parsed.role !== "user") {
+          parsed.role = parsed.id === DEMO_MASTER_ID ? "master" : "user"
+        }
+        setUser(parsed)
         setIsLoading(false)
         return
       } catch {
@@ -104,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise(resolve => setTimeout(resolve, 500))
     const newUser: User = {
       id: `user-${Date.now()}`,
+      role: "user",
       name,
       email,
       avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
