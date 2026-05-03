@@ -72,6 +72,10 @@ interface PhotoDetailModalProps {
   onNext?: () => void
   hasPrevious?: boolean
   hasNext?: boolean
+  /** Витрина на странице мастера: без дублирования автора в шапке и в описании */
+  hideAuthorHeader?: boolean
+  /** Витрина: без ленты комментариев, поля ввода и лишних действий — только просмотр и лайк в шапке */
+  showcaseMinimal?: boolean
 }
 
 export function PhotoDetailModal({ 
@@ -84,7 +88,9 @@ export function PhotoDetailModal({
   onPrevious,
   onNext,
   hasPrevious = false,
-  hasNext = false
+  hasNext = false,
+  hideAuthorHeader = false,
+  showcaseMinimal = false,
 }: PhotoDetailModalProps) {
   const [comment, setComment] = useState("")
   const [localLiked, setLocalLiked] = useState(photo?.isLiked ?? false)
@@ -183,7 +189,20 @@ export function PhotoDetailModal({
             >
               <X className="size-5" />
             </Button>
-            
+
+            {showcaseMinimal ? (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute right-2 top-14 z-30 size-10 rounded-full border-0 bg-background/90 shadow-md backdrop-blur-sm md:top-2"
+                onClick={handleLike}
+                aria-pressed={localLiked}
+                aria-label={localLiked ? "Снять лайк" : "Нравится"}
+              >
+                <Heart className={cn("size-5", localLiked && "fill-destructive text-destructive")} />
+              </Button>
+            ) : null}
+
             {/* Previous/Next item navigation (for gallery browsing) */}
             {!hasMultipleImages && hasPrevious && (
               <Button
@@ -219,41 +238,45 @@ export function PhotoDetailModal({
           {/* Details Section */}
           <div className="flex h-[44vh] w-full shrink-0 flex-col border-l border-border bg-background md:h-full md:w-[380px]">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-border p-4">
-              <Link 
-                href={photo.authorId ? `/profile/${photo.authorId}` : "#"}
-                className="flex items-center gap-3"
-              >
-                <Avatar className="size-10">
-                  <AvatarImage src={photo.authorAvatar} alt={photo.author} />
-                  <AvatarFallback>{photo.author.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <span className="font-semibold hover:underline">{photo.author}</span>
-              </Link>
-              
-              <div className="flex items-center gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="size-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <EntityShareMenuItems
-                      sharePath={pageShareUrl || "/gallery"}
-                      shareTitle={photo?.title}
-                      reportKind="публикация на витрине"
-                    />
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {/* Close button - visible on desktop, hidden on mobile (mobile has one on image) */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hidden md:flex"
-                  onClick={onClose}
+            <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+              {hideAuthorHeader ? (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-semibold text-foreground">{photo.title}</p>
+                  <p className="text-xs text-muted-foreground">Витрина</p>
+                </div>
+              ) : (
+                <Link
+                  href={photo.authorId ? `/profile/${photo.authorId}` : "#"}
+                  className="flex min-w-0 flex-1 items-center gap-3"
                 >
+                  <Avatar className="size-10 shrink-0">
+                    <AvatarImage src={photo.authorAvatar} alt={photo.author} />
+                    <AvatarFallback>{photo.author.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <span className="truncate font-semibold hover:underline">{photo.author}</span>
+                </Link>
+              )}
+
+              <div className="flex shrink-0 items-center gap-1">
+                {!showcaseMinimal ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="size-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <EntityShareMenuItems
+                        sharePath={pageShareUrl || "/gallery"}
+                        shareTitle={photo?.title}
+                        reportKind="публикация на витрине"
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+
+                {/* Close button - visible on desktop, hidden on mobile (mobile has one on image) */}
+                <Button variant="ghost" size="icon" className="hidden md:flex" onClick={onClose}>
                   <X className="size-5" />
                 </Button>
               </div>
@@ -264,14 +287,20 @@ export function PhotoDetailModal({
               <div className="p-4">
                 {/* Post description */}
                 {photo.description && (
-                  <div className="mb-4 flex gap-3">
-                    <Avatar className="size-8 shrink-0">
-                      <AvatarImage src={photo.authorAvatar} alt={photo.author} />
-                      <AvatarFallback>{photo.author.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div>
+                  <div className={cn("mb-4", !hideAuthorHeader && "flex gap-3")}>
+                    {!hideAuthorHeader ? (
+                      <Avatar className="size-8 shrink-0">
+                        <AvatarImage src={photo.authorAvatar} alt={photo.author} />
+                        <AvatarFallback>{photo.author.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                    <div className="min-w-0">
                       <p className="text-sm">
-                        <span className="font-semibold">{photo.author}</span>{" "}
+                        {hideAuthorHeader ? null : (
+                          <>
+                            <span className="font-semibold">{photo.author}</span>{" "}
+                          </>
+                        )}
                         {photo.description}
                       </p>
                       {photo.tags && photo.tags.length > 0 && (
@@ -284,109 +313,104 @@ export function PhotoDetailModal({
                   </div>
                 )}
 
-                <Separator className="my-4" />
+                {!showcaseMinimal ? (
+                  <>
+                    <Separator className="my-4" />
 
-                {/* Comments */}
-                <div className="space-y-4">
-                  {photo.comments.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-muted-foreground">
-                      Пока нет комментариев. Будьте первым!
-                    </p>
-                  ) : (
-                    photo.comments.map((commentItem) => (
-                      <div key={commentItem.id} className="flex gap-3">
-                        <Avatar className="size-8 shrink-0">
-                          <AvatarImage src={commentItem.authorAvatar} alt={commentItem.author} />
-                          <AvatarFallback>{commentItem.author.slice(0, 2)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="text-sm">
-                            <span className="font-semibold">{commentItem.author}</span>{" "}
-                            {commentItem.text}
-                          </p>
-                          <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                            <span>{commentItem.timeAgo}</span>
-                            {commentItem.likes > 0 && (
-                              <span>{formatNumber(commentItem.likes)} отметок</span>
-                            )}
-                            <button className="font-medium hover:text-foreground">
-                              Ответить
+                    {/* Comments */}
+                    <div className="space-y-4">
+                      {photo.comments.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-muted-foreground">
+                          Пока нет комментариев. Будьте первым!
+                        </p>
+                      ) : (
+                        photo.comments.map((commentItem) => (
+                          <div key={commentItem.id} className="flex gap-3">
+                            <Avatar className="size-8 shrink-0">
+                              <AvatarImage src={commentItem.authorAvatar} alt={commentItem.author} />
+                              <AvatarFallback>{commentItem.author.slice(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="text-sm">
+                                <span className="font-semibold">{commentItem.author}</span>{" "}
+                                {commentItem.text}
+                              </p>
+                              <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                                <span>{commentItem.timeAgo}</span>
+                                {commentItem.likes > 0 && (
+                                  <span>{formatNumber(commentItem.likes)} отметок</span>
+                                )}
+                                <button className="font-medium hover:text-foreground">
+                                  Ответить
+                                </button>
+                              </div>
+                            </div>
+                            <button className="shrink-0 text-muted-foreground hover:text-destructive">
+                              <Heart className={cn(
+                                "size-3",
+                                commentItem.isLiked && "fill-destructive text-destructive"
+                              )} />
                             </button>
                           </div>
-                        </div>
-                        <button className="shrink-0 text-muted-foreground hover:text-destructive">
-                          <Heart className={cn(
-                            "size-3",
-                            commentItem.isLiked && "fill-destructive text-destructive"
-                          )} />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                ) : null}
               </div>
             </ScrollArea>
 
             {/* Actions */}
-            <div className="border-t border-border">
-              <div className="flex items-center justify-between p-3">
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleLike}
-                    className="hover:scale-110"
-                  >
-                    <Heart className={cn(
+            {!showcaseMinimal ? (
+              <div className="border-t border-border">
+                <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={handleLike} className="hover:scale-110">
+                      <Heart className={cn(
+                        "size-6 transition-all",
+                        localLiked && "fill-destructive text-destructive scale-110"
+                      )} />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MessageCircle className="size-6" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Share2 className="size-6" />
+                    </Button>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleSave}>
+                    <Bookmark className={cn(
                       "size-6 transition-all",
-                      localLiked && "fill-destructive text-destructive scale-110"
+                      localSaved && "fill-foreground"
                     )} />
                   </Button>
-                  <Button variant="ghost" size="icon">
-                    <MessageCircle className="size-6" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Share2 className="size-6" />
-                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSave}
-                >
-                  <Bookmark className={cn(
-                    "size-6 transition-all",
-                    localSaved && "fill-foreground"
-                  )} />
-                </Button>
-              </div>
 
-              {/* Likes count */}
-              <div className="px-4 pb-2">
-                <p className="text-sm font-semibold">
-                  {formatNumber(localLikes)} отметок «Нравится»
-                </p>
-              </div>
+                <div className="px-4 pb-2">
+                  <p className="text-sm font-semibold">
+                    {formatNumber(localLikes)} отметок «Нравится»
+                  </p>
+                </div>
 
-              {/* Comment input */}
-              <form onSubmit={handleSubmitComment} className="flex items-center gap-2 border-t border-border p-3">
-                <Input
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Добавьте комментарий..."
-                  className="flex-1 border-0 bg-transparent focus-visible:ring-0"
-                />
-                <Button 
-                  type="submit" 
-                  variant="ghost" 
-                  size="icon"
-                  disabled={!comment.trim()}
-                  className="text-primary disabled:opacity-50"
-                >
-                  <Send className="size-5" />
-                </Button>
-              </form>
-            </div>
+                <form onSubmit={handleSubmitComment} className="flex items-center gap-2 border-t border-border p-3">
+                  <Input
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Добавьте комментарий..."
+                    className="flex-1 border-0 bg-transparent focus-visible:ring-0"
+                  />
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon"
+                    disabled={!comment.trim()}
+                    className="text-primary disabled:opacity-50"
+                  >
+                    <Send className="size-5" />
+                  </Button>
+                </form>
+              </div>
+            ) : null}
           </div>
       </DialogContent>
     </Dialog>

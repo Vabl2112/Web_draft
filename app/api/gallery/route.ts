@@ -129,11 +129,31 @@ const imagesByCategory: Record<string, string[]> = {
 const heights: ("small" | "medium" | "large")[] = ["small", "medium", "large"]
 
 const authors = [
-  { name: "Алексей Смирнов", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" },
-  { name: "Мария Иванова", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" },
-  { name: "Дмитрий Козлов", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" },
-  { name: "Анна Петрова", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" },
-  { name: "Игорь Волков", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" },
+  {
+    id: "1",
+    name: "Алексей Смирнов",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+  },
+  {
+    id: "2",
+    name: "Мария Иванова",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+  },
+  {
+    id: "3",
+    name: "Дмитрий Козлов",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+  },
+  {
+    id: "4",
+    name: "Анна Петрова",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+  },
+  {
+    id: "5",
+    name: "Игорь Волков",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+  },
 ]
 
 function generateImages(category: string, subCategory?: string): GalleryImage[] {
@@ -164,12 +184,13 @@ function generateImages(category: string, subCategory?: string): GalleryImage[] 
         : undefined
 
     result.push({
-      id: `${category}-${i}-${Date.now()}`,
+      id: `${category}-${i}`,
       imageUrl,
       ...(extra ? { images: extra } : {}),
       title: `Работа #${i + 1}`,
       author: author.name,
       authorAvatar: author.avatar,
+      authorMasterId: author.id,
       category,
       subCategory: subFilter?.id || "",
       height: heights[Math.floor(Math.random() * heights.length)],

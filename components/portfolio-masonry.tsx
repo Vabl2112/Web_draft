@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Heart, MessageCircle, MoreVertical, Edit2, Trash2 } from "lucide-react"
+import { useCallback, useState } from "react"
+import { Heart, MoreVertical, Edit2, Trash2 } from "lucide-react"
 import { ImageCarousel } from "@/components/image-carousel"
 import { Button } from "@/components/ui/button"
-import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
+import { PhotoDetailModal, type PhotoDetail } from "@/components/photo-detail-modal"
 import { PortfolioItemEditor } from "@/components/portfolio-item-editor"
 import {
   DropdownMenu,
@@ -23,9 +23,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
+import { EntityShareMenuItems } from "@/components/entity-share-menu"
+import { useSingleOrDoubleTap } from "@/hooks/use-single-or-double-tap"
 import type { PortfolioItem } from "@/lib/types"
 import { normalizeShowcaseKind, ShowcaseKindBadge } from "@/components/showcase-kind-badge"
+import { cn } from "@/lib/utils"
 
 interface PortfolioMasonryProps {
   items: PortfolioItem[]
@@ -37,28 +39,6 @@ interface PortfolioMasonryProps {
   onEdit?: (item: PortfolioItem) => void
   onDelete?: (id: string) => void
 }
-
-// Sample comments data for demo
-const sampleComments: PhotoComment[] = [
-  {
-    id: "1",
-    author: "Мария",
-    authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
-    text: "Потрясающая работа!",
-    timeAgo: "2 ч",
-    likes: 8,
-    isLiked: false,
-  },
-  {
-    id: "2",
-    author: "Дмитрий",
-    authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-    text: "Очень круто! Хочу записаться",
-    timeAgo: "1 д",
-    likes: 3,
-    isLiked: true,
-  },
-]
 
 // Helper to get images array (backwards compatible)
 function getImages(item: PortfolioItem): string[] {
@@ -88,7 +68,7 @@ export function PortfolioMasonry({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null)
-
+  const [likedIds, setLikedIds] = useState<Record<string, boolean>>({})
   const handleDeleteClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     setItemToDelete(id)
@@ -122,29 +102,40 @@ export function PortfolioMasonry({
     columns[index % 4].push(item)
   })
 
-  const handleImageClick = (item: PortfolioItem) => {
-    const index = items.findIndex(i => i.id === item.id)
-    const images = getImages(item)
-    const currentIdx = slideByItem[item.id] ?? 0
+  const handleImageClick = useCallback(
+    (item: PortfolioItem) => {
+      const index = items.findIndex(i => i.id === item.id)
+      const images = getImages(item)
+      const currentIdx = slideByItem[item.id] ?? 0
 
-    const photoDetail: PhotoDetail = {
-      id: item.id,
-      imageUrl: images[currentIdx] || images[0],
-      images,
-      title: item.title,
-      description: item.description || `Работа "${item.title}" выполнена профессиональным мастером.`,
-      author: artistName,
-      authorAvatar: artistAvatar,
-      likes: Math.floor(Math.random() * 300) + 30,
-      isLiked: false,
-      isSaved: false,
-      comments: sampleComments,
-      timeAgo: "1 неделю назад",
-      tags: [],
-    }
-    setSelectedPhoto(photoDetail)
-    setSelectedIndex(index)
-  }
+      const photoDetail: PhotoDetail = {
+        id: item.id,
+        imageUrl: images[currentIdx] || images[0],
+        images,
+        title: item.title,
+        description: item.description || `Работа "${item.title}" выполнена профессиональным мастером.`,
+        author: artistName,
+        authorAvatar: artistAvatar,
+        likes:
+          30 +
+          (item.id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 270),
+        isLiked: likedIds[item.id] ?? false,
+        isSaved: false,
+        comments: [],
+        timeAgo: "1 неделю назад",
+        tags: [],
+      }
+      setSelectedPhoto(photoDetail)
+      setSelectedIndex(index)
+    },
+    [artistAvatar, artistName, items, likedIds, slideByItem],
+  )
+
+  const onPortfolioImageTap = useSingleOrDoubleTap<PortfolioItem>(
+    handleImageClick,
+    item => setLikedIds(prev => ({ ...prev, [item.id]: !prev[item.id] })),
+    i => i.id,
+  )
 
   const handlePrevious = () => {
     if (selectedIndex > 0) {
@@ -183,7 +174,7 @@ export function PortfolioMasonry({
               return (
                 <div
                   key={item.id}
-                  className={`group relative overflow-hidden rounded-xl ${getHeightClass(item.height)}`}
+                  className={`relative overflow-hidden rounded-xl ${getHeightClass(item.height)}`}
                 >
                   <div className="absolute left-2 top-2 z-[15]">
                     <ShowcaseKindBadge kind={cardKind} />
@@ -195,34 +186,35 @@ export function PortfolioMasonry({
                       fillContainer
                       aspectRatio="auto"
                       className="rounded-xl"
-                      showControls={false}
                       showDots={images.length > 1}
                       onSlideChange={i => setSlideByItem(prev => ({ ...prev, [item.id]: i }))}
-                      onImageClick={() => handleImageClick(item)}
+                      onImageClick={() => onPortfolioImageTap(item)}
                     />
                   </div>
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
-                    <div className="flex items-center gap-1 text-white">
-                      <Heart className="size-5 fill-white" />
-                      <span className="font-medium">{Math.floor(Math.random() * 300) + 30}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-white">
-                      <MessageCircle className="size-5 fill-white" />
-                      <span className="font-medium">{Math.floor(Math.random() * 15) + 1}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Title at bottom */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <span className="text-sm font-medium text-white">{item.title}</span>
-                  </div>
-                  
-                  <div
-                    className="absolute right-2 top-2 z-20 opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  <div className="absolute right-3 top-3 z-30 flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className={cn(
+                        "size-9 rounded-xl border border-border/70 bg-background/95 shadow-sm",
+                        likedIds[item.id] && "border-destructive/30",
+                      )}
+                      aria-pressed={!!likedIds[item.id]}
+                      aria-label={likedIds[item.id] ? "Снять лайк" : "Нравится"}
+                      onClick={e => {
+                        e.stopPropagation()
+                        setLikedIds(prev => ({ ...prev, [item.id]: !prev[item.id] }))
+                      }}
+                    >
+                      <Heart
+                        className={cn(
+                          "size-4",
+                          likedIds[item.id] ? "fill-destructive text-destructive" : "text-foreground",
+                        )}
+                      />
+                    </Button>
                     {isOwner ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -230,7 +222,7 @@ export function PortfolioMasonry({
                             type="button"
                             variant="secondary"
                             size="icon"
-                            className="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
+                            className="size-9 rounded-xl border border-border/70 bg-background/95 shadow-sm"
                           >
                             <MoreVertical className="size-4" />
                           </Button>
@@ -262,16 +254,7 @@ export function PortfolioMasonry({
                           />
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    ) : (
-                      <EntityActionsDropdown
-                        sharePath={`/master/${masterId}`}
-                        shareTitle={`${item.title} — ${artistName}`}
-                        reportKind="публикация на витрине"
-                        icon="vertical"
-                        align="end"
-                        triggerClassName="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
-                      />
-                    )}
+                    ) : null}
                   </div>
                 </div>
               )
@@ -291,6 +274,14 @@ export function PortfolioMasonry({
         onNext={handleNext}
         hasPrevious={selectedIndex > 0}
         hasNext={selectedIndex < items.length - 1}
+        hideAuthorHeader
+        showcaseMinimal
+        onLike={id =>
+          setLikedIds(prev => ({
+            ...prev,
+            [id]: !prev[id],
+          }))
+        }
       />
 
       {/* Edit dialog */}

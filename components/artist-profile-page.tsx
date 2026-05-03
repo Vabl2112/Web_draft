@@ -295,6 +295,7 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
                         items={vitrinaItems}
                         masterId={data.artist.id}
                         artistName={data.artist.name}
+                        artistAvatar={data.artist.avatar}
                         isOwner={isOwner}
                       />
                     ) : null}

@@ -125,6 +125,8 @@ export interface GalleryImage {
   title: string
   author: string
   authorAvatar: string
+  /** Ссылка на профиль мастера с общей витрины */
+  authorMasterId?: string
   category: string
   subCategory: string
   height: "small" | "medium" | "large"

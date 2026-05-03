@@ -54,6 +54,7 @@ export function MasterCard({ master }: MasterCardProps) {
               </div>
             </div>
             <EntityActionsDropdown
+              menuLead={{ title: master.name, avatarUrl: master.avatar, hint: "Мастер" }}
               sharePath={`/master/${master.id}`}
               shareTitle={master.name}
               reportKind="мастер"
@@ -111,6 +112,7 @@ export function MasterCard({ master }: MasterCardProps) {
         {/* Планшет/десктоп: ⋯ сверху, сразу под ним — кнопки */}
         <div className="hidden shrink-0 flex-col items-end gap-2 pt-1 sm:flex sm:w-auto">
           <EntityActionsDropdown
+            menuLead={{ title: master.name, avatarUrl: master.avatar, hint: "Мастер" }}
             sharePath={`/master/${master.id}`}
             shareTitle={master.name}
             reportKind="мастер"

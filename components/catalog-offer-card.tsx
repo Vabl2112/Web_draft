@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import Image from "next/image"
 import { ImageCarousel } from "@/components/image-carousel"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -34,10 +35,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
+import { EntityShareMenuItems } from "@/components/entity-share-menu"
 import { MessageDialog } from "@/components/message-dialog"
 import { cn } from "@/lib/utils"
 import { useSuppressNavAfterDropdownClose } from "@/hooks/use-suppress-nav-after-dropdown"
+import { useSingleOrDoubleTap } from "@/hooks/use-single-or-double-tap"
 import type { CatalogOfferItem } from "@/lib/types"
 
 function catalogOfferSlides(item: CatalogOfferItem): string[] {
@@ -78,16 +80,16 @@ export interface CatalogOfferCardProps {
     deleteTitle: string
     deleteDescription: string
   }
+  /** Страница мастера: не дублировать имя/аватар продавца под карточкой */
+  hideSellerRow?: boolean
 }
 
-export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferCardProps) {
+export function CatalogOfferCard({ item, viewMode, profileOwner, hideSellerRow }: CatalogOfferCardProps) {
   const router = useRouter()
   const [isLiked, setIsLiked] = useState(false)
   const [messageOpen, setMessageOpen] = useState(false)
-  const [actionsMenuOpen, setActionsMenuOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const { onDropdownOpenChange, allowCardNavigation, scheduleBlockCardNav } =
-    useSuppressNavAfterDropdownClose()
+  const { allowCardNavigation, scheduleBlockCardNav } = useSuppressNavAfterDropdownClose()
 
   const discount =
     item.kind === "product" && item.originalPrice
@@ -95,6 +97,21 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
       : null
 
   const go = () => router.push(item.href)
+
+  const onCatalogImageTap = useSingleOrDoubleTap<CatalogOfferItem>(
+    useCallback(
+      _p => {
+        if (messageOpen || deleteOpen) return
+        if (!allowCardNavigation()) return
+        go()
+      },
+      [messageOpen, deleteOpen, allowCardNavigation, go],
+    ),
+    useCallback(() => {
+      setIsLiked(v => !v)
+    }, []),
+    it => it.id,
+  )
 
   const ownerMenu = profileOwner ? (
     <DropdownMenu>
@@ -156,7 +173,33 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
             go()
           }}
         >
-          <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-40">
+          <div
+            className={cn(
+              "relative aspect-square w-28 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-40",
+              !profileOwner && "cursor-pointer",
+            )}
+            onClick={
+              profileOwner
+                ? undefined
+                : e => {
+                    e.stopPropagation()
+                    onCatalogImageTap(item)
+                  }
+            }
+            role={!profileOwner ? "button" : undefined}
+            tabIndex={!profileOwner ? 0 : undefined}
+            onKeyDown={
+              !profileOwner
+                ? e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      onCatalogImageTap(item)
+                    }
+                  }
+                : undefined
+            }
+            aria-label={!profileOwner ? "Открыть: двойной тап — лайк" : undefined}
+          >
             <Image
               src={item.image}
               alt={item.title}
@@ -173,6 +216,27 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
                 <Badge variant="secondary">Нет в наличии</Badge>
               </div>
             ) : null}
+            {!profileOwner ? (
+              <div className="absolute right-2 top-2 z-[25]" onClick={e => e.stopPropagation()}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className={cn(
+                    "size-9 rounded-xl border border-border/70 bg-background/95 shadow-sm",
+                    isLiked && "border-destructive/30",
+                  )}
+                  aria-pressed={isLiked}
+                  aria-label={isLiked ? "Снять лайк" : "Поставить лайк"}
+                  onClick={e => {
+                    e.stopPropagation()
+                    setIsLiked(v => !v)
+                  }}
+                >
+                  <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col">
@@ -182,35 +246,7 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
                 {item.title}
               </h3>
               <div className="flex shrink-0 items-center gap-1" onClick={e => e.stopPropagation()}>
-                {profileOwner ? (
-                  ownerMenu
-                ) : (
-                  <>
-                    <EntityActionsDropdown
-                      open={actionsMenuOpen}
-                      onOpenChange={o => {
-                        setActionsMenuOpen(o)
-                        onDropdownOpenChange(o)
-                      }}
-                      sharePath={item.href}
-                      shareTitle={item.shareTitle}
-                      reportKind={item.reportKind}
-                      icon="vertical"
-                      triggerClassName="size-8 border border-border bg-background shadow-sm"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={e => {
-                        e.stopPropagation()
-                        setIsLiked(!isLiked)
-                      }}
-                    >
-                      <Heart className={cn("size-5", isLiked && "fill-destructive text-destructive")} />
-                    </Button>
-                  </>
-                )}
+                {profileOwner ? ownerMenu : null}
               </div>
             </div>
 
@@ -230,19 +266,21 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
               </div>
             ) : null}
 
-            <Link
-              href={`/master/${item.seller.id}`}
-              className="mt-2 flex items-center gap-2 transition-opacity hover:opacity-80"
-              onClick={e => e.stopPropagation()}
-            >
-              <Avatar className="size-5">
-                <AvatarImage src={item.seller.avatar} alt="" />
-                <AvatarFallback>{item.seller.name.slice(0, 2)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/65">
-                {item.seller.name}
-              </span>
-            </Link>
+            {!hideSellerRow ? (
+              <Link
+                href={`/master/${item.seller.id}`}
+                className="mt-2 flex items-center gap-2 transition-opacity hover:opacity-80"
+                onClick={e => e.stopPropagation()}
+              >
+                <Avatar className="size-5">
+                  <AvatarImage src={item.seller.avatar} alt="" />
+                  <AvatarFallback>{item.seller.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/65">
+                  {item.seller.name}
+                </span>
+              </Link>
+            ) : null}
 
             <div className="mt-auto flex items-end justify-between gap-4 pt-3">
               <div className="flex flex-col">
@@ -321,14 +359,17 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
           go()
         }}
       >
-        <div className="relative aspect-square overflow-hidden bg-muted">
+        <div
+          className="relative aspect-square overflow-hidden bg-muted"
+          onClick={!profileOwner ? e => e.stopPropagation() : undefined}
+        >
           <ImageCarousel
             images={catalogOfferSlides(item)}
             alt={item.title}
             aspectRatio="square"
             className="h-full rounded-none rounded-t-2xl"
             fillContainer
-            showControls={false}
+            onImageClick={!profileOwner ? () => onCatalogImageTap(item) : undefined}
           />
           {discount ? (
             <Badge className="pointer-events-none absolute left-3 top-3 z-20 border border-white/25 bg-destructive text-destructive-foreground shadow-md">
@@ -342,39 +383,27 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
               </Badge>
             </div>
           ) : null}
-          <div
-            className="absolute right-3 top-3 z-[25] flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={e => e.stopPropagation()}
-          >
-            {profileOwner ? (
-              ownerMenu
-            ) : (
-              <>
-                <EntityActionsDropdown
-                  open={actionsMenuOpen}
-                  onOpenChange={o => {
-                    setActionsMenuOpen(o)
-                    onDropdownOpenChange(o)
-                  }}
-                  sharePath={item.href}
-                  shareTitle={item.shareTitle}
-                  reportKind={item.reportKind}
-                  icon="vertical"
-                  triggerClassName="size-8 bg-background/90 shadow-sm"
-                />
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="size-8 bg-background/90 shadow-sm"
-                  onClick={e => {
-                    e.stopPropagation()
-                    setIsLiked(!isLiked)
-                  }}
-                >
-                  <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
-                </Button>
-              </>
-            )}
+          <div className="absolute right-3 top-3 z-[25] flex items-center gap-1" onClick={e => e.stopPropagation()}>
+            {!profileOwner ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "size-9 rounded-xl border border-border/70 bg-background/95 shadow-sm",
+                  isLiked && "border-destructive/30",
+                )}
+                aria-pressed={isLiked}
+                aria-label={isLiked ? "Снять лайк" : "Поставить лайк"}
+                onClick={e => {
+                  e.stopPropagation()
+                  setIsLiked(v => !v)
+                }}
+              >
+                <Heart className={cn("size-4", isLiked && "fill-destructive text-destructive")} />
+              </Button>
+            ) : null}
+            {profileOwner ? ownerMenu : null}
           </div>
         </div>
 
@@ -407,19 +436,21 @@ export function CatalogOfferCard({ item, viewMode, profileOwner }: CatalogOfferC
             ) : null}
           </div>
 
-          <Link
-            href={`/master/${item.seller.id}`}
-            className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
-            onClick={e => e.stopPropagation()}
-          >
-            <Avatar className="size-6">
-              <AvatarImage src={item.seller.avatar} alt="" />
-              <AvatarFallback>{item.seller.name.slice(0, 2)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/65">
-              {item.seller.name}
-            </span>
-          </Link>
+          {!hideSellerRow ? (
+            <Link
+              href={`/master/${item.seller.id}`}
+              className="mt-3 flex items-center gap-2 transition-opacity hover:opacity-80"
+              onClick={e => e.stopPropagation()}
+            >
+              <Avatar className="size-6">
+                <AvatarImage src={item.seller.avatar} alt="" />
+                <AvatarFallback>{item.seller.name.slice(0, 2)}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/65">
+                {item.seller.name}
+              </span>
+            </Link>
+          ) : null}
 
           {!profileOwner ? (
             <Button

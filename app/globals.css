@@ -182,6 +182,26 @@
   display: none;
 }
 
+/* Двойной тап по карточке витрины: разовая анимация сердца */
+@keyframes showcase-like-burst {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.92;
+  }
+  40% {
+    transform: scale(1.12);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.showcase-like-burst {
+  animation: showcase-like-burst 0.65s ease-out forwards;
+}
+
 /* Improve input appearance on iOS */
 @layer base {
   input[type="text"],

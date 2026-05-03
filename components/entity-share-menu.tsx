@@ -1,6 +1,7 @@
 "use client"
 
 import { Flag, Link2, MoreHorizontal, MoreVertical, Share2 } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -66,12 +67,23 @@ export function EntityShareMenuItems({
 
 type TriggerIcon = "horizontal" | "vertical"
 
+export type EntityMenuLead =
+  | false
+  | {
+      title: string
+      avatarUrl?: string
+      /** Подпись над именем, напр. «Продавец» / «Автор» */
+      hint?: string
+    }
+
 export interface EntityActionsDropdownProps extends EntityShareMenuItemsProps {
   /** Горизонтальные три точки (как в модалке фото) или вертикальные (как на карточках) */
   icon?: TriggerIcon
   align?: "start" | "end" | "center"
   triggerClassName?: string
   contentClassName?: string
+  /** Блок над пунктами: крупный аватар и имя. `false` — не показывать (напр. витрина на странице мастера). */
+  menuLead?: EntityMenuLead
   /** Управляемое меню (например, чтобы подавить клик по карточке после закрытия) */
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -87,11 +99,13 @@ export function EntityActionsDropdown({
   align = "end",
   triggerClassName,
   contentClassName,
+  menuLead,
   open,
   onOpenChange,
 }: EntityActionsDropdownProps) {
   const Icon = icon === "horizontal" ? MoreHorizontal : MoreVertical
   const controlled = open !== undefined
+  const showLead = menuLead !== undefined && menuLead !== false
   return (
     <DropdownMenu {...(controlled ? { open, onOpenChange } : {})}>
       <DropdownMenuTrigger asChild>
@@ -105,13 +119,35 @@ export function EntityActionsDropdown({
           <Icon className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} className={contentClassName} onClick={e => e.stopPropagation()}>
-        <EntityShareMenuItems
-          sharePath={sharePath}
-          reportKind={reportKind}
-          shareTitle={shareTitle}
-          showReport={showReport}
-        />
+      <DropdownMenuContent
+        align={align}
+        className={cn("min-w-[14rem] p-0", contentClassName)}
+        onClick={e => e.stopPropagation()}
+      >
+        {showLead && menuLead ? (
+          <div className="flex items-center gap-3 border-b border-border px-3 py-3">
+            <Avatar className="size-12 shrink-0 ring-2 ring-border/60">
+              {menuLead.avatarUrl ? <AvatarImage src={menuLead.avatarUrl} alt="" /> : null}
+              <AvatarFallback className="text-base font-semibold">
+                {menuLead.title.slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              {menuLead.hint ? (
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{menuLead.hint}</p>
+              ) : null}
+              <p className="truncate text-base font-semibold leading-tight text-foreground">{menuLead.title}</p>
+            </div>
+          </div>
+        ) : null}
+        <div className="p-1">
+          <EntityShareMenuItems
+            sharePath={sharePath}
+            reportKind={reportKind}
+            shareTitle={shareTitle}
+            showReport={showReport}
+          />
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

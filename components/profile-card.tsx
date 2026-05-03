@@ -65,6 +65,7 @@ export function ProfileCard({ artist, showReport = true, onOpenReviews }: Profil
                   <span className="truncate">{locationLabel}</span>
                 </span>
                 <EntityActionsDropdown
+                  menuLead={false}
                   sharePath={`/master/${artist.id}`}
                   shareTitle={artist.name}
                   reportKind="профиль мастера"

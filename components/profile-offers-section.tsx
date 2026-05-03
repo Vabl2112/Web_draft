@@ -114,6 +114,7 @@ export function ProfileOffersSection({
                 key={`${item.kind}-${item.id}`}
                 item={item}
                 viewMode="grid"
+                hideSellerRow
                 profileOwner={
                   isOwner
                     ? {

@@ -100,7 +100,8 @@ function Carousel({
     api.on('select', onSelect)
 
     return () => {
-      api?.off('select', onSelect)
+      api.off('reInit', onSelect)
+      api.off('select', onSelect)
     }
   }, [api, onSelect])
 
@@ -138,7 +139,11 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       ref={carouselRef}
-      className="overflow-hidden"
+      className={cn(
+        'overflow-hidden',
+        /* Вертикальный скролл страницы не должен забирать горизонтальный жест у Embla */
+        orientation === 'horizontal' ? 'touch-pan-x' : 'touch-pan-y',
+      )}
       data-slot="carousel-content"
     >
       <div

@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Image from "next/image"
-import type { CarouselApi } from "@/components/ui/carousel"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export interface ImageCarouselProps {
@@ -12,11 +12,12 @@ export interface ImageCarouselProps {
   aspectRatio?: "square" | "video" | "portrait" | "fourThree" | "auto"
   /** Заполнить высоту родителя (карточки витрины masonry) */
   fillContainer?: boolean
+  /** Стрелки влево/вправо: до md скрыты (свайп); с md — при наведении на карусель. false — не показывать (полноэкран и т.п.) */
   showControls?: boolean
   showDots?: boolean
   className?: string
   imageClassName?: string
-  /** Свободный свайп между снимками; false — по одному кадру с щелчком */
+  /** Свободный свайп между снимками (игнорируется: используется snap по одному кадру) */
   dragFree?: boolean
   onImageClick?: (index: number) => void
   /** Управляемый слайд (миниатюры на странице товара) */
@@ -40,6 +41,25 @@ function aspectClass(ratio: ImageCarouselProps["aspectRatio"], fill: boolean) {
   }
 }
 
+const SCROLL_EDGE_EPS = 4
+
+function readSnapIndex(el: HTMLDivElement, count: number) {
+  const w = el.clientWidth
+  if (w <= 0) return 0
+  return Math.min(count - 1, Math.max(0, Math.round(el.scrollLeft / w)))
+}
+
+function readScrollEdges(el: HTMLDivElement) {
+  const maxScroll = el.scrollWidth - el.clientWidth
+  if (maxScroll <= SCROLL_EDGE_EPS) {
+    return { canPrev: false, canNext: false }
+  }
+  return {
+    canPrev: el.scrollLeft > SCROLL_EDGE_EPS,
+    canNext: el.scrollLeft < maxScroll - SCROLL_EDGE_EPS,
+  }
+}
+
 export function ImageCarousel({
   images,
   alt = "Image",
@@ -49,12 +69,12 @@ export function ImageCarousel({
   showDots = true,
   className,
   imageClassName,
-  dragFree = false,
+  dragFree: _dragFree = false,
   onImageClick,
   selectedIndex: controlledIndex,
   onSlideChange,
 }: ImageCarouselProps) {
-  const [api, setApi] = useState<CarouselApi>()
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState(0)
   const controlled = controlledIndex !== undefined
 
@@ -65,73 +85,138 @@ export function ImageCarousel({
   onImageClickRef.current = onImageClick
 
   const lastEmittedIndex = useRef<number | null>(null)
-  /** Синхронизация scrollTo(selectedIndex) с Embla — не дублировать onSlideChange родителю */
   const isProgrammaticScroll = useRef(false)
-  const programmaticScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const pointerStartRef = useRef<{ x: number; y: number; scroll: number } | null>(null)
+
+  /** Кнопки без disabled — по фактическому scrollLeft (иначе «серая» стрелка при smooth scroll) */
+  const [scrollEdges, setScrollEdges] = useState({ canPrev: false, canNext: true })
+
+  const updateScrollEdges = useCallback(() => {
+    const el = scrollRef.current
+    if (!el || images.length <= 1) return
+    const { canPrev, canNext } = readScrollEdges(el)
+    setScrollEdges(prev => (prev.canPrev === canPrev && prev.canNext === canNext ? prev : { canPrev, canNext }))
+  }, [images.length])
 
   useEffect(() => {
     lastEmittedIndex.current = null
   }, [images])
 
-  const syncFromApi = useCallback(() => {
-    if (!api) return
-    const i = api.selectedScrollSnap()
-    setSelected(prev => (prev === i ? prev : i))
-
-    if (isProgrammaticScroll.current) {
+  const emitIndex = useCallback(
+    (i: number) => {
+      setSelected(prev => (prev === i ? prev : i))
+      if (isProgrammaticScroll.current) {
+        lastEmittedIndex.current = i
+        return
+      }
+      if (lastEmittedIndex.current === i) return
       lastEmittedIndex.current = i
-      isProgrammaticScroll.current = false
-      if (programmaticScrollTimer.current !== null) {
-        clearTimeout(programmaticScrollTimer.current)
-        programmaticScrollTimer.current = null
-      }
-      return
-    }
+      onSlideChangeRef.current?.(i)
+    },
+    [],
+  )
 
-    if (lastEmittedIndex.current === i) return
-    lastEmittedIndex.current = i
-    onSlideChangeRef.current?.(i)
-  }, [api])
+  const settleScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    updateScrollEdges()
+    const i = readSnapIndex(el, images.length)
+    emitIndex(i)
+  }, [emitIndex, images.length, updateScrollEdges])
 
   useEffect(() => {
-    if (!api) return
-    syncFromApi()
-    api.on("select", syncFromApi)
-    api.on("reInit", syncFromApi)
+    const el = scrollRef.current
+    if (!el) return
+
+    const onScrollEnd = () => settleScroll()
+
+    const onScroll = () => {
+      updateScrollEdges()
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
+      settleTimerRef.current = setTimeout(() => {
+        settleTimerRef.current = null
+        settleScroll()
+      }, 64)
+    }
+
+    el.addEventListener("scrollend", onScrollEnd)
+    el.addEventListener("scroll", onScroll, { passive: true })
+    settleScroll()
+
     return () => {
-      api.off("select", syncFromApi)
-      api.off("reInit", syncFromApi)
+      el.removeEventListener("scrollend", onScrollEnd)
+      el.removeEventListener("scroll", onScroll)
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current)
     }
-  }, [api, syncFromApi])
+  }, [images.length, settleScroll, updateScrollEdges])
+
+  useLayoutEffect(() => {
+    updateScrollEdges()
+  }, [images.length, updateScrollEdges])
 
   useEffect(() => {
-    if (!api || !onImageClickRef.current) return
-    const onStatic = () => onImageClickRef.current?.(api.selectedScrollSnap())
-    api.on("staticClick", onStatic)
-    return () => {
-      api.off("staticClick", onStatic)
-    }
-  }, [api])
+    const el = scrollRef.current
+    if (!el || typeof ResizeObserver === "undefined") return
+    const ro = new ResizeObserver(() => settleScroll())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [settleScroll, images.length])
 
   useEffect(() => {
-    if (!api || !controlled || controlledIndex === undefined) return
-    if (api.selectedScrollSnap() === controlledIndex) return
+    if (!controlled || controlledIndex === undefined) return
+    const el = scrollRef.current
+    if (!el) return
+    const w = el.clientWidth
+    if (w <= 0) return
+    const target = controlledIndex * w
+    if (Math.abs(el.scrollLeft - target) < 2) return
     isProgrammaticScroll.current = true
-    if (programmaticScrollTimer.current !== null) {
-      clearTimeout(programmaticScrollTimer.current)
-    }
-    api.scrollTo(controlledIndex)
-    programmaticScrollTimer.current = setTimeout(() => {
+    el.scrollTo({ left: target, behavior: "auto" })
+    const id = requestAnimationFrame(() => {
       isProgrammaticScroll.current = false
-      programmaticScrollTimer.current = null
-    }, 200)
-    return () => {
-      if (programmaticScrollTimer.current !== null) {
-        clearTimeout(programmaticScrollTimer.current)
-        programmaticScrollTimer.current = null
-      }
+      settleScroll()
+    })
+    return () => cancelAnimationFrame(id)
+  }, [controlled, controlledIndex, images.length, settleScroll])
+
+  const scrollByDir = useCallback((dir: -1 | 1) => {
+    const el = scrollRef.current
+    if (!el) return
+    const { canPrev, canNext } = readScrollEdges(el)
+    if (dir === -1 && !canPrev) return
+    if (dir === 1 && !canNext) return
+    const w = el.clientWidth
+    if (w <= 0) return
+    el.scrollBy({ left: dir * w, behavior: "smooth" })
+    requestAnimationFrame(() => updateScrollEdges())
+  }, [updateScrollEdges])
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    pointerStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scroll: scrollRef.current?.scrollLeft ?? 0,
     }
-  }, [api, controlled, controlledIndex])
+  }, [])
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const start = pointerStartRef.current
+      pointerStartRef.current = null
+      if (!start || !onImageClickRef.current) return
+      const el = scrollRef.current
+      if (!el) return
+      const dx = Math.abs(e.clientX - start.x)
+      const dy = Math.abs(e.clientY - start.y)
+      const ds = Math.abs(el.scrollLeft - start.scroll)
+      if (dx > 14 || dy > 14 || ds > 12) return
+      const i = readSnapIndex(el, images.length)
+      onImageClickRef.current(i)
+    },
+    [images.length],
+  )
 
   if (!images || images.length === 0) {
     return (
@@ -177,20 +262,35 @@ export function ImageCarousel({
     )
   }
 
-  /** Как в ленте (FeedPostCard): без touch-pan-x на обёртках — иначе жесты часто не доходят до Embla */
   return (
     <div
-      className={cn("group relative w-full overflow-hidden bg-muted", fillContainer && "h-full min-h-0", className)}
-      onPointerDown={e => e.stopPropagation()}
+      className={cn(
+        "group/carousel relative z-0 w-full rounded-lg bg-muted",
+        fillContainer && "h-full min-h-0",
+        className,
+      )}
     >
-      <Carousel
-        setApi={setApi}
-        opts={{ align: "start", loop: false, dragFree }}
-        className={cn("w-full", fillContainer && "h-full min-h-0")}
-      >
-        <CarouselContent className={cn("-ml-0", fillContainer && "h-full")}>
+      <div className={cn("relative overflow-hidden rounded-lg", fillContainer && "h-full min-h-0")}>
+        <div
+          ref={scrollRef}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          className={cn(
+            "flex w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth",
+            "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+            "touch-pan-x select-none",
+            fillContainer ? "h-full min-h-0" : "",
+          )}
+        >
           {images.map((src, i) => (
-            <CarouselItem key={`${src}-${i}`} className={cn("basis-full pl-0", fillContainer && "h-full min-h-0")}>
+            <div
+              key={`${src}-${i}`}
+              className={cn(
+                "relative min-h-0 w-full shrink-0 snap-start snap-always",
+                "basis-full [min-width:100%]",
+                fillContainer ? "h-full self-stretch" : "",
+              )}
+            >
               <div
                 className={cn(
                   "relative w-full select-none",
@@ -207,26 +307,54 @@ export function ImageCarousel({
                   draggable={false}
                 />
               </div>
-            </CarouselItem>
+            </div>
           ))}
-        </CarouselContent>
+        </div>
 
-        {showControls ? (
+        {showControls && images.length > 1 ? (
           <>
-            <CarouselPrevious
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="absolute left-2 top-1/2 z-10 size-8 -translate-y-1/2 rounded-full border-0 bg-background/80 opacity-0 shadow-sm backdrop-blur-sm transition-opacity hover:bg-background/90 group-hover:opacity-100"
-              onClick={e => e.stopPropagation()}
-            />
-            <CarouselNext
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="absolute right-2 top-1/2 z-10 size-8 -translate-y-1/2 rounded-full border-0 bg-background/80 opacity-0 shadow-sm backdrop-blur-sm transition-opacity hover:bg-background/90 group-hover:opacity-100"
-              onClick={e => e.stopPropagation()}
-            />
+            {scrollEdges.canPrev ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "absolute left-2 top-1/2 z-[15] size-9 -translate-y-1/2 rounded-full border-0 bg-background/90 shadow-md backdrop-blur-sm",
+                  "hidden md:inline-flex",
+                  "pointer-events-auto opacity-0 transition-opacity duration-200",
+                "group-hover/carousel:opacity-100 group-focus-within/carousel:opacity-100",
+                "hover:bg-background/95 focus-visible:opacity-100",
+              )}
+              aria-label="Предыдущее фото"
+                onClick={e => {
+                  e.stopPropagation()
+                  scrollByDir(-1)
+                }}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+            ) : null}
+            {scrollEdges.canNext ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "absolute right-2 top-1/2 z-[15] size-9 -translate-y-1/2 rounded-full border-0 bg-background/90 shadow-md backdrop-blur-sm",
+                  "hidden md:inline-flex",
+                  "pointer-events-auto opacity-0 transition-opacity duration-200",
+                "group-hover/carousel:opacity-100 group-focus-within/carousel:opacity-100",
+                "hover:bg-background/95 focus-visible:opacity-100",
+              )}
+              aria-label="Следующее фото"
+                onClick={e => {
+                  e.stopPropagation()
+                  scrollByDir(1)
+                }}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            ) : null}
           </>
         ) : null}
 
@@ -246,7 +374,7 @@ export function ImageCarousel({
             ))}
           </div>
         ) : null}
-      </Carousel>
+      </div>
     </div>
   )
 }

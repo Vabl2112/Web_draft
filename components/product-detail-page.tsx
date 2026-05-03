@@ -183,6 +183,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               >
                 <span className="pointer-events-auto">
                   <EntityActionsDropdown
+                    menuLead={{
+                      title: product.seller.name,
+                      avatarUrl: product.seller.avatar,
+                      hint: "Продавец",
+                    }}
                     sharePath={`/product/${productId}`}
                     shareTitle={product.title}
                     reportKind="товар"

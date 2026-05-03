@@ -114,6 +114,11 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
                   <div className="pointer-events-none absolute left-3 top-3 z-20 flex gap-2">
                     <span className="pointer-events-auto">
                       <EntityActionsDropdown
+                        menuLead={{
+                          title: service.master.name,
+                          avatarUrl: service.master.avatar,
+                          hint: "Мастер",
+                        }}
                         sharePath={`/service/${serviceId}`}
                         shareTitle={service.title}
                         reportKind="услуга"

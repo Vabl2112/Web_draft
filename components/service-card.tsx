@@ -61,7 +61,6 @@ export function ServiceCard({ service }: ServiceCardProps) {
             alt={service.title}
             aspectRatio="video"
             className="rounded-none"
-            showControls={false}
           />
           {service.popular && (
             <Badge className="absolute left-3 top-3 gap-1 bg-amber-100 text-amber-700">
@@ -71,6 +70,11 @@ export function ServiceCard({ service }: ServiceCardProps) {
           )}
           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <EntityActionsDropdown
+              menuLead={{
+                title: service.master.name,
+                avatarUrl: service.master.avatar,
+                hint: "Мастер",
+              }}
               sharePath={`/service/${service.id}`}
               shareTitle={service.title}
               reportKind="услуга"
@@ -96,6 +100,11 @@ export function ServiceCard({ service }: ServiceCardProps) {
         {!hasImages && (
           <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
             <EntityActionsDropdown
+              menuLead={{
+                title: service.master.name,
+                avatarUrl: service.master.avatar,
+                hint: "Мастер",
+              }}
               sharePath={`/service/${service.id}`}
               shareTitle={service.title}
               reportKind="услуга"

@@ -1,18 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { Heart, MessageCircle } from "lucide-react"
-import { ImageCarousel } from "@/components/image-carousel"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { EntityActionsDropdown } from "@/components/entity-share-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useCallback, useRef, useState } from "react"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
+import { ShowcaseVitrinaCard } from "@/components/showcase-vitrina-card"
+import { useSingleOrDoubleTap } from "@/hooks/use-single-or-double-tap"
 import type { GalleryImage } from "@/lib/types"
-import { normalizeShowcaseKind, ShowcaseKindBadge } from "@/components/showcase-kind-badge"
 
 interface GalleryMasonryProps {
   images: GalleryImage[]
+  /** Глобальная витрина: имя мастера только на lg+ и по hover карточки */
+  isGlobalFeed?: boolean
 }
 
 // Sample comments data for demo
@@ -51,24 +48,38 @@ function gallerySlides(img: GalleryImage): string[] {
   return [img.imageUrl]
 }
 
-export function GalleryMasonry({ images }: GalleryMasonryProps) {
+export function GalleryMasonry({ images, isGlobalFeed = true }: GalleryMasonryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const [likedImages, setLikedImages] = useState<Set<string>>(new Set())
+  const [likeBursts, setLikeBursts] = useState<{ key: number; imageId: string }[]>([])
+  const burstSeq = useRef(0)
 
-  const toggleLike = (imageId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLikedImages(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(imageId)) {
-        newSet.delete(imageId)
-      } else {
-        newSet.add(imageId)
-      }
-      return newSet
-    })
-  }
-  
+  const removeBurst = useCallback((burstKey: number) => {
+    setLikeBursts(prev => prev.filter(b => b.key !== burstKey))
+  }, [])
+
+  const pushBurst = useCallback((imageId: string) => {
+    const key = ++burstSeq.current
+    setLikeBursts(prev => [...prev, { key, imageId }])
+  }, [])
+
+  /** Двойной тап через хук уже переключил лайк — игнорируем следующий браузерный dblclick */
+  const skipNativeDblClickRef = useRef(false)
+
+  const toggleLikeWithBurst = useCallback(
+    (imageId: string) => {
+      setLikedImages(prev => {
+        const next = new Set(prev)
+        if (next.has(imageId)) next.delete(imageId)
+        else next.add(imageId)
+        return next
+      })
+      pushBurst(imageId)
+    },
+    [pushBurst],
+  )
+
   const getHeightClass = (height: "small" | "medium" | "large") => {
     switch (height) {
       case "small":
@@ -82,32 +93,50 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
     }
   }
 
-  // Distribute images across columns for masonry effect
   const columns = [[], [], [], []] as GalleryImage[][]
   images.forEach((image, index) => {
     columns[index % 4].push(image)
   })
 
-  const handleImageClick = (image: GalleryImage, flatIndex: number) => {
-    const slides = gallerySlides(image)
-    const photoDetail: PhotoDetail = {
-      id: image.id,
-      imageUrl: slides[0],
-      images: slides,
-      title: image.title,
-      description: `Работа в стиле ${image.subCategory}. Выполнена профессиональным мастером с использованием качественных материалов.`,
-      author: image.author,
-      authorAvatar: image.authorAvatar,
-      likes: Math.floor(Math.random() * 500) + 50,
-      isLiked: likedImages.has(image.id),
-      isSaved: false,
-      comments: sampleComments,
-      timeAgo: "3 дня назад",
-      tags: [image.category, image.subCategory].filter(Boolean),
-    }
-    setSelectedPhoto(photoDetail)
-    setSelectedIndex(flatIndex)
-  }
+  const handleImageClick = useCallback(
+    (image: GalleryImage, flatIndex: number) => {
+      const slides = gallerySlides(image)
+      const photoDetail: PhotoDetail = {
+        id: image.id,
+        imageUrl: slides[0],
+        images: slides,
+        title: image.title,
+        description: `Работа в стиле ${image.subCategory}. Выполнена профессиональным мастером с использованием качественных материалов.`,
+        author: image.author,
+        authorAvatar: image.authorAvatar,
+        likes: 50 + (image.id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 450),
+        isLiked: likedImages.has(image.id),
+        isSaved: false,
+        comments: sampleComments,
+        timeAgo: "3 дня назад",
+        tags: [image.category, image.subCategory].filter(Boolean),
+      }
+      setSelectedPhoto(photoDetail)
+      setSelectedIndex(flatIndex)
+    },
+    [likedImages],
+  )
+
+  type GalleryTapPayload = { image: GalleryImage; flatIndex: number }
+
+  const onGalleryImageTap = useSingleOrDoubleTap<GalleryTapPayload>(
+    ({ image, flatIndex }) => handleImageClick(image, flatIndex),
+    ({ image }) => {
+      setLikedImages(prev => {
+        const next = new Set(prev)
+        if (next.has(image.id)) next.delete(image.id)
+        else next.add(image.id)
+        return next
+      })
+      pushBurst(image.id)
+    },
+    p => p.image.id,
+  )
 
   const handleModalLike = (photoId: string) => {
     setLikedImages(prev => {
@@ -135,7 +164,6 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
     }
   }
 
-  // Create a flat index map for navigation
   let flatIndex = 0
 
   return (
@@ -143,94 +171,26 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {columns.map((column, colIndex) => (
           <div key={colIndex} className="flex flex-col gap-4">
-            {column.map((image) => {
+            {column.map(image => {
               const currentFlatIndex = flatIndex++
+              const burstsForCard = likeBursts.filter(b => b.imageId === image.id).map(b => b.key)
               return (
-                <div
+                <ShowcaseVitrinaCard
                   key={image.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleImageClick(image, currentFlatIndex)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      handleImageClick(image, currentFlatIndex)
-                    }
+                  image={image}
+                  heightClass={getHeightClass(image.height)}
+                  isGlobalFeed={isGlobalFeed}
+                  burstKeys={burstsForCard}
+                  onBurstComplete={removeBurst}
+                  onImageTap={() => onGalleryImageTap({ image, flatIndex: currentFlatIndex })}
+                  onPhotoDoubleClick={e => {
+                    if (skipNativeDblClickRef.current) return
+                    e.preventDefault()
+                    e.stopPropagation()
+                    toggleLikeWithBurst(image.id)
                   }}
-                  className={`group relative cursor-pointer overflow-hidden rounded-xl ${getHeightClass(image.height)} focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2`}
-                >
-                  <div className="absolute left-2 top-2 z-[15]">
-                    <ShowcaseKindBadge kind={normalizeShowcaseKind(image.showcaseKind)} />
-                  </div>
-                  <div className="relative h-full w-full min-h-0">
-                    <ImageCarousel
-                      images={gallerySlides(image)}
-                      alt={image.title}
-                      fillContainer
-                      aspectRatio="auto"
-                      className="rounded-xl"
-                      showControls={false}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  
-                  {/* Меню + лайк */}
-                  <div
-                    className={cn(
-                      "absolute right-3 top-3 z-10 flex items-center gap-1 transition-all duration-200",
-                      likedImages.has(image.id)
-                        ? "opacity-100"
-                        : "opacity-0 group-hover:opacity-100"
-                    )}
-                  >
-                    <EntityActionsDropdown
-                      sharePath={`/gallery?image=${image.id}`}
-                      shareTitle={image.title}
-                      reportKind="публикация на витрине"
-                      icon="vertical"
-                      triggerClassName="size-8 bg-background/90 shadow-sm"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="size-8 bg-background/90 shadow-sm"
-                      onClick={(e) => toggleLike(image.id, e)}
-                    >
-                      <Heart
-                        className={cn(
-                          "size-4 transition-all duration-200",
-                          likedImages.has(image.id) && "scale-110 fill-destructive text-destructive"
-                        )}
-                      />
-                    </Button>
-                  </div>
-                  
-                  {/* Hover overlay with stats */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
-                    <div className="flex items-center gap-1 text-white">
-                      <Heart className="size-6 fill-white" />
-                      <span className="font-semibold">{Math.floor(Math.random() * 500) + 50}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-white">
-                      <MessageCircle className="size-6 fill-white" />
-                      <span className="font-semibold">{Math.floor(Math.random() * 20) + 1}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-4 transition-transform duration-300 group-hover:translate-y-0 pointer-events-none">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="size-8 border-2 border-white">
-                        <AvatarImage src={image.authorAvatar} />
-                        <AvatarFallback className="text-xs">
-                          {image.author.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium text-white">
-                        {image.author}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  onKeyOpen={() => handleImageClick(image, currentFlatIndex)}
+                />
               )
             })}
           </div>

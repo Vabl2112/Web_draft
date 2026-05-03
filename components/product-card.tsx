@@ -57,7 +57,6 @@ export function ProductCard({ product }: ProductCardProps) {
           aspectRatio="square"
           className="rounded-none rounded-t-2xl"
           fillContainer
-          showControls={false}
         />
         {discount && (
           <Badge className="absolute left-3 top-3 bg-destructive text-destructive-foreground">

@@ -32,10 +32,7 @@ export function GalleryPage() {
   const filteredImages = useMemo(() => {
     if (!data?.images?.length) return []
     if (showcaseKind === "all") return data.images
-    return data.images.filter(img => {
-      const k: ShowcaseCardKind = img.showcaseKind ?? "portfolio"
-      return k === showcaseKind
-    })
+    return data.images.filter(img => normalizeShowcaseKind(img.showcaseKind) === showcaseKind)
   }, [data?.images, showcaseKind])
 
   return (
@@ -84,15 +81,17 @@ export function GalleryPage() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {[1, 2, 3, 4].map(col => (
               <div key={col} className="flex flex-col gap-4">
-                {[1, 2, 3].map(row => (
-                  <Skeleton
-                    key={row}
-                    className="rounded-xl"
-                    style={{
-                      height: `${Math.floor(Math.random() * 150) + 200}px`,
-                    }}
-                  />
-                ))}
+                {[1, 2, 3].map(row => {
+                  const skeletonHeightsPx = [232, 268, 304, 248, 288, 320, 216, 296, 256, 272, 240, 312]
+                  const idx = (col - 1) * 3 + (row - 1)
+                  return (
+                    <Skeleton
+                      key={row}
+                      className="rounded-xl"
+                      style={{ height: `${skeletonHeightsPx[idx % skeletonHeightsPx.length]}px` }}
+                    />
+                  )
+                })}
               </div>
             ))}
           </div>

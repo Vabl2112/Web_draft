@@ -99,7 +99,6 @@ function ProductCard({
           aspectRatio="square"
           className="rounded-none rounded-t-2xl"
           onImageClick={() => handleCardClick()}
-          showControls={false}
         />
 
         {discount && (
@@ -171,6 +170,11 @@ function ProductCard({
           ) : (
             <>
               <EntityActionsDropdown
+                menuLead={{
+                  title: product.seller.name,
+                  avatarUrl: product.seller.avatar,
+                  hint: "Продавец",
+                }}
                 open={actionsMenuOpen}
                 onOpenChange={(o) => {
                   setActionsMenuOpen(o)
