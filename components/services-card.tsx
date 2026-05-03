@@ -145,7 +145,7 @@ export function ServicesCard({ services, isOwner, onEdit, onDelete }: ServicesCa
                     images={service.images!}
                     alt={service.title}
                     aspectRatio="square"
-                    showControls={true}
+                    showControls={false}
                     showDots={service.images!.length > 1}
                   />
                 </div>

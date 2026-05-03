@@ -1,11 +1,12 @@
 "use client"
 
 import { useAuth } from "@/lib/auth-context"
+import { HomeNewsFeed } from "@/components/home-news-feed"
 import { LandingPage } from "@/components/landing-page"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Home() {
-  const { isLoading } = useAuth()
+  const { isLoading, isAuthenticated } = useAuth()
 
   if (isLoading) {
     return (
@@ -13,6 +14,10 @@ export default function Home() {
         <Skeleton className="size-12 rounded-full" />
       </div>
     )
+  }
+
+  if (isAuthenticated) {
+    return <HomeNewsFeed />
   }
 
   return <LandingPage />

@@ -4,17 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { 
-  ArrowLeft, 
-  Calendar,
-  Clock, 
-  MapPin, 
-  Star, 
-  Heart,
-  ChevronLeft,
-  ChevronRight,
-  MessageCircle
-} from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, Star, Heart, MessageCircle } from "lucide-react"
+import { ImageCarousel } from "@/components/image-carousel"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -89,18 +80,6 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
   // In real app, fetch service data by serviceId
   const service = mockService
 
-  const goToPrevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? service.images.length - 1 : prev - 1
-    )
-  }
-
-  const goToNextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === service.images.length - 1 ? 0 : prev + 1
-    )
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -110,7 +89,7 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
         <Button 
           variant="ghost" 
           className="mb-4 gap-2"
-          onClick={() => router.push("/services")}
+          onClick={() => router.push("/products?kind=service")}
         >
           <ArrowLeft className="size-4" />
           Назад к услугам
@@ -122,65 +101,32 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
             {/* Main Image Carousel */}
             {service.images.length > 0 ? (
               <div className="space-y-3">
-                <div 
-                  className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted cursor-pointer"
-                  onClick={() => setIsFullscreen(true)}
-                >
-                  <Image
-                    src={service.images[currentImageIndex]}
+                <div className="group relative">
+                  <ImageCarousel
+                    images={service.images}
                     alt={service.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    priority
+                    aspectRatio="fourThree"
+                    className="cursor-pointer rounded-2xl bg-muted"
+                    selectedIndex={currentImageIndex}
+                    onSlideChange={setCurrentImageIndex}
+                    onImageClick={() => setIsFullscreen(true)}
                   />
-                  
-                  {/* Navigation arrows */}
-                  {service.images.length > 1 && (
-                    <>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          goToPrevImage()
-                        }}
-                      >
-                        <ChevronLeft className="size-5" />
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          goToNextImage()
-                        }}
-                      >
-                        <ChevronRight className="size-5" />
-                      </Button>
-                    </>
-                  )}
-                  
-                  {/* Image counter */}
-                  <div className="absolute right-3 top-3 rounded-full bg-background/80 px-2 py-1 text-xs font-medium backdrop-blur-sm">
-                    {currentImageIndex + 1}/{service.images.length}
-                  </div>
-                  
-                  {/* Actions */}
-                  <div className="absolute left-3 top-3 flex gap-2">
-                    <EntityActionsDropdown
-                      sharePath={`/service/${serviceId}`}
-                      shareTitle={service.title}
-                      reportKind="услуга"
-                      icon="vertical"
-                      triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
-                    />
+                  <div className="pointer-events-none absolute left-3 top-3 z-20 flex gap-2">
+                    <span className="pointer-events-auto">
+                      <EntityActionsDropdown
+                        sharePath={`/service/${serviceId}`}
+                        shareTitle={service.title}
+                        reportKind="услуга"
+                        icon="vertical"
+                        triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
+                      />
+                    </span>
                     <Button
+                      type="button"
                       variant="secondary"
                       size="icon"
-                      className="size-9 rounded-full bg-background/80 backdrop-blur-sm"
-                      onClick={(e) => {
+                      className="pointer-events-auto size-9 rounded-full bg-background/80 backdrop-blur-sm"
+                      onClick={e => {
                         e.stopPropagation()
                         setIsLiked(!isLiked)
                       }}
@@ -329,77 +275,37 @@ export function ServiceDetailPage({ serviceId }: ServiceDetailPageProps) {
         </div>
       </main>
 
-      {/* Fullscreen Image Modal */}
       {isFullscreen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
           onClick={() => setIsFullscreen(false)}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 text-white hover:bg-white/20"
+            className="absolute right-4 top-4 z-[60] text-white hover:bg-white/20"
             onClick={() => setIsFullscreen(false)}
           >
             <span className="sr-only">Закрыть</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </Button>
-          
-          <div className="relative h-[90vh] w-[90vw]">
-            <Image
-              src={service.images[currentImageIndex]}
+
+          <div
+            className="relative z-[55] h-[90vh] w-[min(96vw,1200px)] px-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <ImageCarousel
+              images={service.images}
               alt={service.title}
-              fill
-              className="object-contain"
-              onClick={(e) => e.stopPropagation()}
+              fillContainer
+              aspectRatio="auto"
+              className="rounded-lg"
+              imageClassName="object-contain"
+              showControls={false}
+              selectedIndex={currentImageIndex}
+              onSlideChange={setCurrentImageIndex}
             />
           </div>
-          
-          {service.images.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToPrevImage()
-                }}
-              >
-                <ChevronLeft className="size-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToNextImage()
-                }}
-              >
-                <ChevronRight className="size-6" />
-              </Button>
-              
-              {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-                {service.images.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCurrentImageIndex(idx)
-                    }}
-                    className={cn(
-                      "size-2.5 rounded-full transition-all",
-                      idx === currentImageIndex 
-                        ? "bg-white w-6" 
-                        : "bg-white/50 hover:bg-white/80"
-                    )}
-                  />
-                ))}
-              </div>
-            </>
-          )}
         </div>
       )}
       

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { ImageCarousel } from "@/components/image-carousel"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Star, Heart } from "lucide-react"
@@ -18,6 +18,7 @@ interface ProductCardProps {
     price: number
     originalPrice: number | null
     image: string
+    images?: string[]
     category: string
     inStock: boolean
     rating: number
@@ -37,6 +38,8 @@ export function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
 
+  const gallery = product.images?.length ? product.images : [product.image]
+
   const handleCardClick = () => {
     router.push(`/product/${product.id}`)
   }
@@ -48,11 +51,13 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
-        <Image
-          src={product.image}
+        <ImageCarousel
+          images={gallery}
           alt={product.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          aspectRatio="square"
+          className="rounded-none rounded-t-2xl"
+          fillContainer
+          showControls={false}
         />
         {discount && (
           <Badge className="absolute left-3 top-3 bg-destructive text-destructive-foreground">

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
-import type { GalleryCategory, GalleryImage } from "@/lib/types"
+import type { GalleryCategory, GalleryImage, ShowcaseCardKind } from "@/lib/types"
+
+const SHOWCASE_ROTATION: ShowcaseCardKind[] = ["portfolio", "record"]
 
 const categories: GalleryCategory[] = [
   {
@@ -151,15 +153,27 @@ function generateImages(category: string, subCategory?: string): GalleryImage[] 
     const author = authors[Math.floor(Math.random() * authors.length)]
     const imageUrl = images[Math.floor(Math.random() * images.length)]
     
+    const extra =
+      i % 3 === 0
+        ? [
+            imageUrl,
+            images[Math.floor(Math.random() * images.length)] +
+              (imageUrl.includes("?") ? "&" : "?") +
+              `alt=${i}`,
+          ]
+        : undefined
+
     result.push({
       id: `${category}-${i}-${Date.now()}`,
       imageUrl,
+      ...(extra ? { images: extra } : {}),
       title: `Работа #${i + 1}`,
       author: author.name,
       authorAvatar: author.avatar,
       category,
       subCategory: subFilter?.id || "",
       height: heights[Math.floor(Math.random() * heights.length)],
+      showcaseKind: SHOWCASE_ROTATION[i % SHOWCASE_ROTATION.length],
     })
   }
   

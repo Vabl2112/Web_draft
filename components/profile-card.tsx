@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { MapPin, MessageSquare, Heart, Instagram, Send, Globe } from "lucide-react"
+import { MapPin, MessageSquare, Heart, Instagram, Send, Globe, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,9 +17,11 @@ interface ProfileCardProps {
   artist: Artist
   /** На своей странице мастеру не показываем «Пожаловаться» */
   showReport?: boolean
+  /** Открыть панель отзывов (клик по блоку рейтинга) */
+  onOpenReviews?: () => void
 }
 
-export function ProfileCard({ artist, showReport = true }: ProfileCardProps) {
+export function ProfileCard({ artist, showReport = true, onOpenReviews }: ProfileCardProps) {
   const [messageOpen, setMessageOpen] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const socialLinks = artist.socialLinks
@@ -73,14 +75,44 @@ export function ProfileCard({ artist, showReport = true }: ProfileCardProps) {
               </div>
             </div>
 
-            {/* Рейтинг — отдельная строка, единый ритм отступов */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm md:mt-6">
-              <RatingStars rating={artist.rating} className="gap-0.5" />
-              <span className="font-semibold tabular-nums text-foreground">{artist.rating}</span>
-              <span className="text-muted-foreground">
-                · {artist.reviewsCount.toLocaleString("ru-RU")} отзывов
-              </span>
-            </div>
+            {/* Рейтинг — кнопка открытия панели отзывов */}
+            {onOpenReviews ? (
+              <button
+                type="button"
+                onClick={onOpenReviews}
+                className={cn(
+                  "mt-5 flex w-full max-w-md flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm transition-colors md:mt-6 md:max-w-none md:px-2 md:py-2",
+                  "bg-muted/25 hover:bg-muted/45 focus-visible:bg-muted/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                )}
+                title="Отзывы оставляют только к услугам и товарам мастера; рейтинг считается по ним"
+                aria-label={`Отзывы к услугам и товарам: рейтинг ${artist.rating}, ${artist.reviewsCount.toLocaleString("ru-RU")} отзывов`}
+              >
+                <RatingStars rating={artist.rating} className="gap-0.5" />
+                <span className="font-semibold tabular-nums text-foreground">{artist.rating}</span>
+                <span className="text-muted-foreground">
+                  · {artist.reviewsCount.toLocaleString("ru-RU")}{" "}
+                  <span className="hidden sm:inline">к услугам и товарам</span>
+                  <span className="sm:hidden">отзывов</span>
+                </span>
+                <ChevronRight
+                  className="ml-auto size-5 shrink-0 text-muted-foreground md:hidden"
+                  aria-hidden
+                />
+              </button>
+            ) : (
+              <div
+                className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm md:mt-6"
+                title="Рейтинг считается по отзывам к услугам и товарам мастера"
+              >
+                <RatingStars rating={artist.rating} className="gap-0.5" />
+                <span className="font-semibold tabular-nums text-foreground">{artist.rating}</span>
+                <span className="text-muted-foreground">
+                  · {artist.reviewsCount.toLocaleString("ru-RU")}{" "}
+                  <span className="hidden sm:inline">к услугам и товарам</span>
+                  <span className="sm:hidden">отзывов</span>
+                </span>
+              </div>
+            )}
 
             {/* Текст и теги: сетка выравнивает колонки по канонам (одна базовая линия) */}
             <div className="mt-5 grid min-w-0 gap-8 md:mt-6 lg:grid-cols-[minmax(0,1fr)_min(13.5rem,28%)] lg:gap-x-10 lg:gap-y-0">

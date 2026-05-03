@@ -17,11 +17,11 @@ import {
 } from "@/lib/types"
 
 const SECTION_LABELS: { key: keyof SectionVisibility; label: string }[] = [
-  { key: "portfolio", label: "Портфолио" },
+  { key: "portfolio", label: "Витрина" },
   { key: "services", label: "Услуги" },
   { key: "products", label: "Товары" },
   { key: "calculator", label: "Калькулятор" },
-  { key: "reviews", label: "Отзывы" },
+  { key: "articles", label: "Статьи" },
 ]
 
 export interface MasterHeaderEditorSavePayload {

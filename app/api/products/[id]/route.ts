@@ -56,7 +56,10 @@ const products = [
         rating: 5,
         date: "3 дня назад",
         text: "Отличный крем! Тату зажила быстро и без проблем. Рекомендую всем.",
-        helpful: 18
+        helpful: 18,
+        targetType: "product",
+        targetId: "1",
+        targetTitle: "Заживляющий крем для тату",
       },
       {
         id: "2",
@@ -65,7 +68,10 @@ const products = [
         rating: 5,
         date: "1 неделю назад",
         text: "Пользуюсь этим кремом уже не первый раз. Качество на высоте!",
-        helpful: 12
+        helpful: 12,
+        targetType: "product",
+        targetId: "1",
+        targetTitle: "Заживляющий крем для тату",
       }
     ]
   },
@@ -122,7 +128,10 @@ const products = [
         rating: 5,
         date: "5 дней назад",
         text: "Идеальный набор! Все что нужно для ухода в одной коробке.",
-        helpful: 8
+        helpful: 8,
+        targetType: "product",
+        targetId: "2",
+        targetTitle: "Набор для ухода за тату",
       }
     ]
   },
@@ -185,7 +194,10 @@ const products = [
         rating: 5,
         date: "2 дня назад",
         text: "Качественное украшение, никакого раздражения. Рекомендую!",
-        helpful: 6
+        helpful: 6,
+        targetType: "product",
+        targetId: "3",
+        targetTitle: "Серьга для пирсинга (титан)",
       }
     ]
   },
@@ -251,7 +263,10 @@ const products = [
         rating: 5,
         date: "1 неделю назад",
         text: "Отличная футболка! Качество супер, принт яркий.",
-        helpful: 10
+        helpful: 10,
+        targetType: "product",
+        targetId: "5",
+        targetTitle: "Футболка EGG Studio",
       }
     ]
   },
@@ -317,7 +332,10 @@ const products = [
         rating: 5,
         date: "3 дня назад",
         text: "Отличная машинка для своей цены. Работает тихо, линии ровные.",
-        helpful: 14
+        helpful: 14,
+        targetType: "product",
+        targetId: "6",
+        targetTitle: "Тату-машинка Dragonhawk",
       }
     ]
   }

@@ -4,19 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { 
-  ArrowLeft, 
-  Star, 
-  Heart,
-  ChevronLeft,
-  ChevronRight,
-  Truck,
-  Shield,
-  RotateCcw,
-  Package,
-  Check,
-  MessageCircle
-} from "lucide-react"
+import { ArrowLeft, Star, Heart, Truck, Shield, RotateCcw, Package, Check, MessageCircle } from "lucide-react"
+import { ImageCarousel } from "@/components/image-carousel"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -27,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
+import { ReviewTargetBadge } from "@/components/reviews-list"
+import type { Review } from "@/lib/types"
 
 interface ProductDetailPageProps {
   productId: string
@@ -58,15 +49,7 @@ interface Product {
   sizes: string[] | null
   colors: { name: string; value: string }[] | null
   specifications: { label: string; value: string }[]
-  reviews: {
-    id: string
-    author: string
-    avatar: string
-    rating: number
-    date: string
-    text: string
-    helpful: number
-  }[]
+  reviews: (Review & { helpful: number })[]
 }
 
 export function ProductDetailPage({ productId }: ProductDetailPageProps) {
@@ -106,20 +89,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const discount = product?.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null
-
-  const goToPrevImage = () => {
-    if (!product) return
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? product.images.length - 1 : prev - 1
-    )
-  }
-
-  const goToNextImage = () => {
-    if (!product) return
-    setCurrentImageIndex((prev) => 
-      prev === product.images.length - 1 ? 0 : prev + 1
-    )
-  }
 
   // Loading state
   if (isLoading) {
@@ -193,68 +162,40 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Left Column - Images */}
           <div className="space-y-3">
-            {/* Main Image */}
-            <div 
-              className="group relative aspect-square overflow-hidden rounded-2xl bg-muted cursor-pointer"
-              onClick={() => setIsFullscreen(true)}
-            >
-              <Image
-                src={product.images[currentImageIndex]}
+            <div className="group relative">
+              <ImageCarousel
+                images={product.images}
                 alt={product.title}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                priority
+                aspectRatio="square"
+                className="cursor-pointer rounded-2xl bg-muted"
+                selectedIndex={currentImageIndex}
+                onSlideChange={setCurrentImageIndex}
+                onImageClick={() => setIsFullscreen(true)}
               />
-              
-              {/* Discount badge */}
-              {discount && (
-                <Badge className="absolute left-3 top-3 bg-destructive text-destructive-foreground text-sm px-3 py-1">
+              {discount ? (
+                <Badge className="pointer-events-none absolute left-3 top-3 z-20 bg-destructive text-destructive-foreground text-sm px-3 py-1">
                   -{discount}%
                 </Badge>
-              )}
-              
-              {/* Navigation arrows */}
-              {product.images.length > 1 && (
-                <>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      goToPrevImage()
-                    }}
-                  >
-                    <ChevronLeft className="size-5" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      goToNextImage()
-                    }}
-                  >
-                    <ChevronRight className="size-5" />
-                  </Button>
-                </>
-              )}
-              
-              {/* Actions */}
-              <div className="absolute right-3 top-3 flex flex-row gap-2">
-                <EntityActionsDropdown
-                  sharePath={`/product/${productId}`}
-                  shareTitle={product.title}
-                  reportKind="товар"
-                  icon="vertical"
-                  triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
-                />
+              ) : null}
+              <div
+                className="pointer-events-none absolute right-3 top-3 z-20 flex flex-row gap-2"
+                aria-hidden
+              >
+                <span className="pointer-events-auto">
+                  <EntityActionsDropdown
+                    sharePath={`/product/${productId}`}
+                    shareTitle={product.title}
+                    reportKind="товар"
+                    icon="vertical"
+                    triggerClassName="size-9 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-none"
+                  />
+                </span>
                 <Button
+                  type="button"
                   variant="secondary"
                   size="icon"
-                  className="size-9 rounded-full bg-background/80 backdrop-blur-sm"
-                  onClick={(e) => {
+                  className="pointer-events-auto size-9 rounded-full bg-background/80 backdrop-blur-sm"
+                  onClick={e => {
                     e.stopPropagation()
                     setIsLiked(!isLiked)
                   }}
@@ -517,8 +458,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   
                   <Separator orientation="vertical" className="h-20" />
                   
-                  <div className="flex-1">
-                    <Button>Написать отзыв</Button>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Отзыв можно оставить только к этому товару, не к профилю продавца.
+                    </p>
+                    <Button>Оставить отзыв о товаре</Button>
                   </div>
                 </div>
 
@@ -532,24 +476,25 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                             <AvatarImage src={review.avatar} alt={review.author} />
                             <AvatarFallback>{review.author.slice(0, 2)}</AvatarFallback>
                           </Avatar>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium">{review.author}</p>
-                            <div className="flex items-center gap-2">
+                            <div className="mt-1 flex items-center gap-2">
                               <div className="flex items-center gap-0.5">
-                                {[1,2,3,4,5].map((star) => (
-                                  <Star 
-                                    key={star} 
+                                {[1, 2, 3, 4, 5].map(star => (
+                                  <Star
+                                    key={star}
                                     className={cn(
                                       "size-3",
-                                      star <= review.rating 
-                                        ? "fill-amber-400 text-amber-400" 
-                                        : "text-muted"
-                                    )} 
+                                      star <= review.rating
+                                        ? "fill-amber-400 text-amber-400"
+                                        : "text-muted",
+                                    )}
                                   />
                                 ))}
                               </div>
                               <span className="text-sm text-muted-foreground">{review.date}</span>
                             </div>
+                            <ReviewTargetBadge review={review} />
                           </div>
                         </div>
                       </div>
@@ -571,77 +516,38 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         </div>
       </main>
 
-      {/* Fullscreen Image Modal */}
+      {/* Fullscreen: свайп по галерее */}
       {isFullscreen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
           onClick={() => setIsFullscreen(false)}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 text-white hover:bg-white/20"
+            className="absolute right-4 top-4 z-[60] text-white hover:bg-white/20"
             onClick={() => setIsFullscreen(false)}
           >
             <span className="sr-only">Закрыть</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </Button>
-          
-          <div className="relative h-[90vh] w-[90vw]">
-            <Image
-              src={product.images[currentImageIndex]}
+
+          <div
+            className="relative z-[55] h-[90vh] w-[min(96vw,1200px)] px-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <ImageCarousel
+              images={product.images}
               alt={product.title}
-              fill
-              className="object-contain"
-              onClick={(e) => e.stopPropagation()}
+              fillContainer
+              aspectRatio="auto"
+              className="rounded-lg"
+              imageClassName="object-contain"
+              showControls={false}
+              selectedIndex={currentImageIndex}
+              onSlideChange={setCurrentImageIndex}
             />
           </div>
-          
-          {product.images.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToPrevImage()
-                }}
-              >
-                <ChevronLeft className="size-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToNextImage()
-                }}
-              >
-                <ChevronRight className="size-6" />
-              </Button>
-              
-              {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-                {product.images.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCurrentImageIndex(idx)
-                    }}
-                    className={cn(
-                      "size-2.5 rounded-full transition-all",
-                      idx === currentImageIndex 
-                        ? "bg-white w-6" 
-                        : "bg-white/50 hover:bg-white/80"
-                    )}
-                  />
-                ))}
-              </div>
-            </>
-          )}
         </div>
       )}
       

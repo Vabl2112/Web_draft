@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { ImageCarousel } from "@/components/image-carousel"
 import Link from "next/link"
 import { 
   Heart, 
@@ -113,16 +114,6 @@ export function PhotoDetailModal({
   const currentImage = allImages[currentImageIndex] || photo?.imageUrl || ""
   const hasMultipleImages = allImages.length > 1
 
-  const goToPrevImage = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1))
-  }
-
-  const goToNextImage = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1))
-  }
-
   if (!photo) return null
 
   const handleLike = () => {
@@ -160,15 +151,29 @@ export function PhotoDetailModal({
         
           {/* Image Section */}
           <div className="relative h-[48vh] w-full overflow-hidden bg-black md:h-full md:flex-1">
-            <Image
-              src={currentImage}
-              alt={photo.title}
-              fill
-              className="object-cover object-center"
-              sizes="(max-width: 768px) 100vw, calc(100vw - 380px)"
-              priority
-            />
-            
+            {hasMultipleImages ? (
+              <ImageCarousel
+                images={allImages}
+                alt={photo.title}
+                fillContainer
+                aspectRatio="auto"
+                className="h-full md:min-h-0"
+                imageClassName="object-cover object-center"
+                showControls={false}
+                selectedIndex={currentImageIndex}
+                onSlideChange={setCurrentImageIndex}
+              />
+            ) : (
+              <Image
+                src={currentImage}
+                alt={photo.title}
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, calc(100vw - 380px)"
+                priority
+              />
+            )}
+
             {/* Close button */}
             <Button
               variant="ghost"
@@ -178,52 +183,6 @@ export function PhotoDetailModal({
             >
               <X className="size-5" />
             </Button>
-            
-            {/* Image carousel navigation (within current photo's images) */}
-            {hasMultipleImages && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
-                  onClick={goToPrevImage}
-                >
-                  <ChevronLeft className="size-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/80 text-foreground hover:bg-white"
-                  onClick={goToNextImage}
-                >
-                  <ChevronRight className="size-5" />
-                </Button>
-                
-                {/* Image dots indicator */}
-                <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
-                  {allImages.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setCurrentImageIndex(idx)
-                      }}
-                      className={cn(
-                        "size-2 rounded-full transition-all",
-                        idx === currentImageIndex 
-                          ? "bg-white w-4" 
-                          : "bg-white/60 hover:bg-white/80"
-                      )}
-                    />
-                  ))}
-                </div>
-                
-                {/* Image counter */}
-                <div className="absolute left-2 top-2 z-20 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white">
-                  {currentImageIndex + 1}/{allImages.length}
-                </div>
-              </>
-            )}
             
             {/* Previous/Next item navigation (for gallery browsing) */}
             {!hasMultipleImages && hasPrevious && (
@@ -248,12 +207,13 @@ export function PhotoDetailModal({
               </Button>
             )}
             
-            {/* Double tap to like indicator */}
-            <button
-              className="absolute inset-0 z-10 focus:outline-none"
-              onDoubleClick={handleLike}
-              aria-label="Double tap to like"
-            />
+            {!hasMultipleImages ? (
+              <button
+                className="absolute inset-0 z-10 focus:outline-none"
+                onDoubleClick={handleLike}
+                aria-label="Double tap to like"
+              />
+            ) : null}
           </div>
 
           {/* Details Section */}
@@ -282,7 +242,7 @@ export function PhotoDetailModal({
                     <EntityShareMenuItems
                       sharePath={pageShareUrl || "/gallery"}
                       shareTitle={photo?.title}
-                      reportKind="публикация в галерее"
+                      reportKind="публикация на витрине"
                     />
                   </DropdownMenuContent>
                 </DropdownMenu>

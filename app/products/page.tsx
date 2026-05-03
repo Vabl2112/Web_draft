@@ -1,10 +1,15 @@
-import { ProductsPage } from "@/components/products-page"
+import { Suspense } from "react"
+import { CatalogPage } from "@/components/catalog-page"
 
 export const metadata = {
-  title: "Товары - EGG",
-  description: "Качественные товары для ухода за тату, украшения, оборудование и мерч",
+  title: "Товары и услуги - EGG",
+  description: "Изделия, материалы и услуги мастеров в одном каталоге",
 }
 
 export default function Products() {
-  return <ProductsPage />
+  return (
+    <Suspense fallback={null}>
+      <CatalogPage preset="all" />
+    </Suspense>
+  )
 }

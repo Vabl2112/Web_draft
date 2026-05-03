@@ -404,20 +404,19 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Gallery */}
+        {/* Витрина */}
         <section className="border-b border-border py-14 sm:py-20">
           <div className="mx-auto max-w-7xl px-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Галерея</h2>
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Витрина</h2>
                 <p className="mt-2 max-w-xl text-muted-foreground">
-                  Случайная подборка из топ-100 работ (демо: перемешивание на клиенте; позже — метод
-                  API).
+                  Портфолио и записи — случайная подборка (демо: перемешивание на клиенте).
                 </p>
               </div>
               <Link href="/gallery">
                 <Button variant="outline" className="gap-2">
-                  Открыть галерею
+                  Открыть витрину
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>

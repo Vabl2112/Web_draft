@@ -1,17 +1,18 @@
 ﻿"use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import useSWR from "swr"
-import { Plus, Edit2, Trash2 } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ProfileCard } from "@/components/profile-card"
-import { ServicesCard } from "@/components/services-card"
-import { ProductsGrid } from "@/components/products-grid"
+import { ProfileOffersSection } from "@/components/profile-offers-section"
 import { PortfolioMasonry } from "@/components/portfolio-masonry"
-import { ReviewsCard } from "@/components/reviews-card"
+import { MasterReviewsDrawer } from "@/components/master-reviews-drawer"
 import { CalculatorCard } from "@/components/calculator-card"
 import { DynamicTabs, type TabItem } from "@/components/dynamic-tabs"
+import { MasterArticlesTab } from "@/components/master-articles-tab"
+import { ShowcaseKindSwitch, type ShowcaseKindFilter } from "@/components/showcase-kind-switch"
+import { normalizeShowcaseKind } from "@/components/showcase-kind-badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { MasterHeaderEditor } from "@/components/master-header-editor"
@@ -23,6 +24,7 @@ import { useAuth } from "@/lib/auth-context"
 import {
   DEFAULT_SECTION_VISIBILITY,
   type ArtistProfile,
+  type PortfolioItem,
   type SectionVisibility,
 } from "@/lib/types"
 
@@ -106,6 +108,8 @@ function SectionHeader({
 
 export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
   const { user, isAuthenticated } = useAuth()
+  const [reviewsOpen, setReviewsOpen] = useState(false)
+  const [showcaseKindFilter, setShowcaseKindFilter] = useState<ShowcaseKindFilter>("all")
   const resolvedMasterId = masterId || user?.id
   const { data, error, isLoading, mutate } = useSWR<ArtistProfile>(
     resolvedMasterId ? `/api/artist/${resolvedMasterId}` : null,
@@ -182,6 +186,17 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
     }
   }, [data])
 
+  const openReviews = useCallback(() => setReviewsOpen(true), [])
+
+  const vitrinaItems = useMemo(() => {
+    if (!data?.portfolio) return []
+    return data.portfolio.filter((p: PortfolioItem) => {
+      const k = normalizeShowcaseKind(p.showcaseKind)
+      if (showcaseKindFilter === "all") return true
+      return k === showcaseKindFilter
+    })
+  }, [data?.portfolio, showcaseKindFilter])
+
   const handleSaveHeader = (payload: {
     name: string
     title: string
@@ -239,7 +254,7 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
           {isLoading ? (
             <ProfileSkeleton />
           ) : data ? (
-            <ProfileCard artist={data.artist} showReport={!isOwner} />
+            <ProfileCard artist={data.artist} showReport={!isOwner} onOpenReviews={openReviews} />
           ) : null}
         </section>
 
@@ -254,24 +269,30 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
             const allTabs: TabItem[] = [
               {
                 id: "portfolio",
-                label: "Портфолио",
+                label: "Витрина",
                 content: (
                   <div>
-                    <SectionHeader 
-                      title="Работы" 
+                    <SectionHeader
+                      title="Витрина"
                       isOwner={isOwner}
                       onAdd={
-                        <PortfolioItemEditor 
-                          mode="add" 
-                          onSave={handleAddPortfolioItem}
-                        />
+                        <PortfolioItemEditor mode="add" onSave={handleAddPortfolioItem} />
                       }
                     />
+                    {data ? (
+                      <div className="mb-6">
+                        <ShowcaseKindSwitch
+                          value={showcaseKindFilter}
+                          onChange={setShowcaseKindFilter}
+                          stretch
+                        />
+                      </div>
+                    ) : null}
                     {isLoading ? (
                       <PortfolioSkeleton />
                     ) : data ? (
                       <PortfolioMasonry
-                        items={data.portfolio}
+                        items={vitrinaItems}
                         masterId={data.artist.id}
                         artistName={data.artist.name}
                         isOwner={isOwner}
@@ -281,48 +302,36 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
                 )
               },
               {
-                id: "services",
-                label: "Услуги",
+                id: "offers",
+                label: "Товары и услуги",
                 content: (
                   <div>
-                    <SectionHeader 
-                      title="Услуги" 
+                    <SectionHeader
+                      title="Товары и услуги"
                       isOwner={isOwner}
                       onAdd={
-                        <ServiceEditor 
-                          mode="add" 
-                          onSave={handleAddService}
-                        />
+                        isOwner ? (
+                          <div className="flex flex-wrap gap-2">
+                            <ServiceEditor mode="add" onSave={handleAddService} />
+                            <ProductEditor mode="add" onSave={handleAddProduct} />
+                          </div>
+                        ) : undefined
                       }
                     />
                     {data ? (
-                      <ServicesCard 
-                        services={data.services} 
+                      <ProfileOffersSection
+                        artist={{
+                          id: data.artist.id,
+                          name: data.artist.name,
+                          avatar: data.artist.avatar,
+                        }}
+                        services={data.services}
+                        products={products}
+                        showServices={visibility.services !== false}
+                        showProducts={visibility.products !== false}
                         isOwner={isOwner}
                       />
                     ) : null}
-                  </div>
-                )
-              },
-              {
-                id: "products",
-                label: "Товары",
-                content: (
-                  <div>
-                    <SectionHeader 
-                      title="Товары" 
-                      isOwner={isOwner}
-                      onAdd={
-                        <ProductEditor 
-                          mode="add" 
-                          onSave={handleAddProduct}
-                        />
-                      }
-                    />
-                    <ProductsGrid 
-                      products={products}
-                      isOwner={isOwner}
-                    />
                   </div>
                 )
               },
@@ -349,15 +358,23 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
                 )
               },
               {
-                id: "reviews",
-                label: "Отзывы",
-                content: data ? <ReviewsCard reviews={data.reviews} /> : null
+                id: "articles",
+                label: "Статьи",
+                content: data ? (
+                  <div>
+                    <SectionHeader title="Статьи" isOwner={isOwner} />
+                    <MasterArticlesTab masterId={data.artist.id} masterName={data.artist.name} />
+                  </div>
+                ) : null
               }
             ]
 
-            const tabs = allTabs.filter(
-              tab => visibility[tab.id as keyof SectionVisibility] !== false
-            )
+            const tabs = allTabs.filter(tab => {
+              if (tab.id === "offers") {
+                return visibility.services !== false || visibility.products !== false
+              }
+              return visibility[tab.id as keyof SectionVisibility] !== false
+            })
 
             if (tabs.length === 0) {
               return (
@@ -379,6 +396,15 @@ export function ArtistProfilePage({ masterId }: ArtistProfilePageProps) {
         </section>
       </main>
       
+      {data ? (
+        <MasterReviewsDrawer
+          open={reviewsOpen}
+          onOpenChange={setReviewsOpen}
+          reviews={data.reviews}
+          masterName={data.artist.name}
+        />
+      ) : null}
+
       <Footer />
     </div>
   )

@@ -1,14 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { Heart, MessageCircle } from "lucide-react"
+import { ImageCarousel } from "@/components/image-carousel"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
 import type { GalleryImage } from "@/lib/types"
+import { normalizeShowcaseKind, ShowcaseKindBadge } from "@/components/showcase-kind-badge"
 
 interface GalleryMasonryProps {
   images: GalleryImage[]
@@ -44,6 +45,11 @@ const sampleComments: PhotoComment[] = [
     isLiked: false,
   },
 ]
+
+function gallerySlides(img: GalleryImage): string[] {
+  if (img.images?.length) return img.images
+  return [img.imageUrl]
+}
 
 export function GalleryMasonry({ images }: GalleryMasonryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
@@ -83,9 +89,11 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
   })
 
   const handleImageClick = (image: GalleryImage, flatIndex: number) => {
+    const slides = gallerySlides(image)
     const photoDetail: PhotoDetail = {
       id: image.id,
-      imageUrl: image.imageUrl,
+      imageUrl: slides[0],
+      images: slides,
       title: image.title,
       description: `Работа в стиле ${image.subCategory}. Выполнена профессиональным мастером с использованием качественных материалов.`,
       author: image.author,
@@ -142,22 +150,28 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                   key={image.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => handleImageClick(image, images.findIndex(img => img.id === image.id))}
+                  onClick={() => handleImageClick(image, currentFlatIndex)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      handleImageClick(image, images.findIndex(img => img.id === image.id))
+                      handleImageClick(image, currentFlatIndex)
                     }
                   }}
                   className={`group relative cursor-pointer overflow-hidden rounded-xl ${getHeightClass(image.height)} focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2`}
                 >
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
+                  <div className="absolute left-2 top-2 z-[15]">
+                    <ShowcaseKindBadge kind={normalizeShowcaseKind(image.showcaseKind)} />
+                  </div>
+                  <div className="relative h-full w-full min-h-0">
+                    <ImageCarousel
+                      images={gallerySlides(image)}
+                      alt={image.title}
+                      fillContainer
+                      aspectRatio="auto"
+                      className="rounded-xl"
+                      showControls={false}
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   
                   {/* Меню + лайк */}
@@ -172,7 +186,7 @@ export function GalleryMasonry({ images }: GalleryMasonryProps) {
                     <EntityActionsDropdown
                       sharePath={`/gallery?image=${image.id}`}
                       shareTitle={image.title}
-                      reportKind="публикация в галерее"
+                      reportKind="публикация на витрине"
                       icon="vertical"
                       triggerClassName="size-8 bg-background/90 shadow-sm"
                     />

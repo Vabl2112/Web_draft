@@ -104,7 +104,11 @@ export function SmartFiltersDesktop({
 
   const getActiveFiltersCount = () => {
     let count = activeFilters.category ? 1 : 0
-    Object.values(activeFilters.subFilters).forEach(value => {
+    Object.entries(activeFilters.subFilters).forEach(([key, value]) => {
+      if (key === "listing-kind") {
+        const vals = Array.isArray(value) ? value : value ? [value as string] : []
+        if (vals.length === 0 || vals.every(v => v === "all")) return
+      }
       if (Array.isArray(value)) {
         count += value.length
       } else if (value) {
@@ -386,7 +390,11 @@ export function SmartFiltersMobile({
 
   const getActiveFiltersCount = () => {
     let count = activeFilters.category ? 1 : 0
-    Object.values(activeFilters.subFilters).forEach(value => {
+    Object.entries(activeFilters.subFilters).forEach(([key, value]) => {
+      if (key === "listing-kind") {
+        const vals = Array.isArray(value) ? value : value ? [value as string] : []
+        if (vals.length === 0 || vals.every(v => v === "all")) return
+      }
       if (Array.isArray(value)) {
         count += value.length
       } else if (value) {
@@ -559,6 +567,7 @@ export function ActiveFiltersBadges({
     if (!filter) return
 
     const values = Array.isArray(value) ? value : [value as string]
+    if (filterId === "listing-kind" && values.every(v => v === "all" || !v)) return
     values.forEach(v => {
       const option = filter.options.find(o => o.id === v)
       if (option) {

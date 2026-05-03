@@ -99,6 +99,7 @@ function ProductCard({
           aspectRatio="square"
           className="rounded-none rounded-t-2xl"
           onImageClick={() => handleCardClick()}
+          showControls={false}
         />
 
         {discount && (

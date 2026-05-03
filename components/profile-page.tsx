@@ -47,7 +47,7 @@ const recentActivity = [
     id: "2",
     type: "review",
     title: "Отзыв опубликован",
-    description: "Вы оставили отзыв мастеру Дмитрий Козлов",
+    description: "Вы оставили отзыв к услуге у Дмитрия Козлова",
     date: "10 апреля",
     icon: Star,
   },
@@ -75,9 +75,11 @@ const userReviews = [
     artistName: "Дмитрий Козлов",
     artistAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
     rating: 5,
-    text: "Отличный мастер! Сделал татуировку точно по эскизу, очень доволен результатом. Рекомендую!",
+    text: "Сделал татуировку точно по эскизу, очень доволен результатом. Рекомендую!",
     date: "10 апреля 2024",
     workImage: "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=300&h=300&fit=crop",
+    targetKind: "Услуга" as const,
+    targetTitle: "Сеанс тату (3 часа)",
   },
   {
     id: "2",
@@ -87,6 +89,8 @@ const userReviews = [
     text: "Профессиональный подход, чистота и внимание к деталям. Буду обращаться ещё!",
     date: "25 марта 2024",
     workImage: "https://images.unsplash.com/photo-1590246814883-57764a58d1a3?w=300&h=300&fit=crop",
+    targetKind: "Услуга" as const,
+    targetTitle: "Разработка эскиза",
   },
   {
     id: "3",
@@ -96,6 +100,8 @@ const userReviews = [
     text: "Хорошая работа, немного дольше по времени чем планировалось, но результат стоит того.",
     date: "15 марта 2024",
     workImage: "https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=300&h=300&fit=crop",
+    targetKind: "Товар" as const,
+    targetTitle: "Набор для ухода за тату",
   },
 ]
 
@@ -362,9 +368,15 @@ export function ProfilePage() {
                                 <AvatarImage src={review.artistAvatar} alt={review.artistName} />
                                 <AvatarFallback>{review.artistName.slice(0, 2)}</AvatarFallback>
                               </Avatar>
-                              <span className="font-medium">{review.artistName}</span>
+                              <div className="min-w-0">
+                                <span className="font-medium">{review.artistName}</span>
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                  {review.targetKind}:{" "}
+                                  <span className="font-medium text-foreground/90">{review.targetTitle}</span>
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-0.5">
+                            <div className="flex shrink-0 items-center gap-0.5">
                               {[...Array(5)].map((_, i) => (
                                 <Star
                                   key={i}

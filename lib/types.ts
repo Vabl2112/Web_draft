@@ -4,7 +4,8 @@ export interface SectionVisibility {
   services: boolean
   products: boolean
   calculator: boolean
-  reviews: boolean
+  /** Вкладка «Статьи» на странице мастера */
+  articles: boolean
 }
 
 export const DEFAULT_SECTION_VISIBILITY: SectionVisibility = {
@@ -12,7 +13,7 @@ export const DEFAULT_SECTION_VISIBILITY: SectionVisibility = {
   services: true,
   products: true,
   calculator: true,
-  reviews: true,
+  articles: true,
 }
 
 export interface Artist {
@@ -50,12 +51,17 @@ export interface Service {
   images?: string[] // Optional photos for services
 }
 
+/** Тип карточки на витрине: работа из портфолио или запись в ленте */
+export type ShowcaseCardKind = "portfolio" | "record"
+
 export interface PortfolioItem {
   id: string
   images: string[] // Support multiple images per portfolio item
   title: string
   description?: string
   height: "small" | "medium" | "large"
+  /** Для витрины мастера: метка кирпичной сетки; без поля считается портфолио */
+  showcaseKind?: ShowcaseCardKind
 }
 
 export interface Product {
@@ -76,6 +82,9 @@ export interface Product {
   }
 }
 
+/** Отзыв можно оставить только к услуге или товару мастера, не к профилю */
+export type ReviewTargetType = "service" | "product"
+
 export interface Review {
   id: string
   author: string
@@ -83,13 +92,18 @@ export interface Review {
   rating: number
   date: string
   text: string
+  targetType: ReviewTargetType
+  targetId: string
+  /** Денормализованное название услуги или товара для отображения */
+  targetTitle: string
 }
 
 export interface ArtistProfile {
   artist: Artist
   services: Service[]
   portfolio: PortfolioItem[]
-  reviews: Review[]
+  /** Сырые элементы с API; на клиенте фильтруются (null / other и т.д. отбрасываются) */
+  reviews: unknown[]
 }
 
 export interface GalleryCategory {
@@ -106,12 +120,16 @@ export interface GallerySubFilter {
 export interface GalleryImage {
   id: string
   imageUrl: string
+  /** Доп. кадры для свайпа на карточке витрины */
+  images?: string[]
   title: string
   author: string
   authorAvatar: string
   category: string
   subCategory: string
   height: "small" | "medium" | "large"
+  /** Витрина: тип публикации */
+  showcaseKind?: ShowcaseCardKind
 }
 
 // Calculator types
@@ -209,4 +227,34 @@ export interface FiltersConfig {
 export interface ActiveFilters {
   category: string | null
   subFilters: Record<string, string | string[] | { min: number; max: number }>
+}
+
+/** Тип позиции в объединённых списках каталога и профиля мастера */
+export type OfferKind = "product" | "service"
+
+/** Единая модель карточки «товар или услуга» для списков (детальные страницы остаются раздельными) */
+export interface CatalogOfferItem {
+  kind: OfferKind
+  id: string
+  title: string
+  description: string
+  category: string
+  image: string
+  images?: string[]
+  href: string
+  priceValue: number
+  priceLabel: string
+  originalPrice?: number | null
+  inStock?: boolean
+  rating?: number
+  reviewsCount?: number
+  duration?: string
+  popular?: boolean
+  seller: {
+    id: string
+    name: string
+    avatar: string
+  }
+  shareTitle: string
+  reportKind: "товар" | "услуга"
 }

@@ -1,74 +1,169 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import type { CarouselApi } from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
 
-interface ImageCarouselProps {
+export interface ImageCarouselProps {
   images: string[]
   alt?: string
-  aspectRatio?: "square" | "video" | "portrait" | "auto"
+  aspectRatio?: "square" | "video" | "portrait" | "fourThree" | "auto"
+  /** Заполнить высоту родителя (карточки витрины masonry) */
+  fillContainer?: boolean
   showControls?: boolean
   showDots?: boolean
   className?: string
   imageClassName?: string
+  /** Свободный свайп между снимками; false — по одному кадру с щелчком */
+  dragFree?: boolean
   onImageClick?: (index: number) => void
+  /** Управляемый слайд (миниатюры на странице товара) */
+  selectedIndex?: number
+  onSlideChange?: (index: number) => void
+}
+
+function aspectClass(ratio: ImageCarouselProps["aspectRatio"], fill: boolean) {
+  if (fill) return "h-full min-h-0 w-full"
+  switch (ratio) {
+    case "square":
+      return "aspect-square"
+    case "video":
+      return "aspect-video"
+    case "portrait":
+      return "aspect-[3/4]"
+    case "fourThree":
+      return "aspect-[4/3]"
+    default:
+      return "aspect-auto min-h-[120px]"
+  }
 }
 
 export function ImageCarousel({
   images,
   alt = "Image",
   aspectRatio = "square",
+  fillContainer = false,
   showControls = true,
   showDots = true,
   className,
   imageClassName,
+  dragFree = false,
   onImageClick,
+  selectedIndex: controlledIndex,
+  onSlideChange,
 }: ImageCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [api, setApi] = useState<CarouselApi>()
+  const [selected, setSelected] = useState(0)
+  const controlled = controlledIndex !== undefined
 
-  const goToPrevious = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  }, [images.length])
+  const onSlideChangeRef = useRef(onSlideChange)
+  onSlideChangeRef.current = onSlideChange
 
-  const goToNext = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
-  }, [images.length])
+  const onImageClickRef = useRef(onImageClick)
+  onImageClickRef.current = onImageClick
 
-  const goToSlide = useCallback((index: number, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentIndex(index)
-  }, [])
+  const lastEmittedIndex = useRef<number | null>(null)
+  /** Синхронизация scrollTo(selectedIndex) с Embla — не дублировать onSlideChange родителю */
+  const isProgrammaticScroll = useRef(false)
+  const programmaticScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    lastEmittedIndex.current = null
+  }, [images])
+
+  const syncFromApi = useCallback(() => {
+    if (!api) return
+    const i = api.selectedScrollSnap()
+    setSelected(prev => (prev === i ? prev : i))
+
+    if (isProgrammaticScroll.current) {
+      lastEmittedIndex.current = i
+      isProgrammaticScroll.current = false
+      if (programmaticScrollTimer.current !== null) {
+        clearTimeout(programmaticScrollTimer.current)
+        programmaticScrollTimer.current = null
+      }
+      return
+    }
+
+    if (lastEmittedIndex.current === i) return
+    lastEmittedIndex.current = i
+    onSlideChangeRef.current?.(i)
+  }, [api])
+
+  useEffect(() => {
+    if (!api) return
+    syncFromApi()
+    api.on("select", syncFromApi)
+    api.on("reInit", syncFromApi)
+    return () => {
+      api.off("select", syncFromApi)
+      api.off("reInit", syncFromApi)
+    }
+  }, [api, syncFromApi])
+
+  useEffect(() => {
+    if (!api || !onImageClickRef.current) return
+    const onStatic = () => onImageClickRef.current?.(api.selectedScrollSnap())
+    api.on("staticClick", onStatic)
+    return () => {
+      api.off("staticClick", onStatic)
+    }
+  }, [api])
+
+  useEffect(() => {
+    if (!api || !controlled || controlledIndex === undefined) return
+    if (api.selectedScrollSnap() === controlledIndex) return
+    isProgrammaticScroll.current = true
+    if (programmaticScrollTimer.current !== null) {
+      clearTimeout(programmaticScrollTimer.current)
+    }
+    api.scrollTo(controlledIndex)
+    programmaticScrollTimer.current = setTimeout(() => {
+      isProgrammaticScroll.current = false
+      programmaticScrollTimer.current = null
+    }, 200)
+    return () => {
+      if (programmaticScrollTimer.current !== null) {
+        clearTimeout(programmaticScrollTimer.current)
+        programmaticScrollTimer.current = null
+      }
+    }
+  }, [api, controlled, controlledIndex])
 
   if (!images || images.length === 0) {
     return (
-      <div className={cn(
-        "flex items-center justify-center bg-muted rounded-lg",
-        aspectRatio === "square" && "aspect-square",
-        aspectRatio === "video" && "aspect-video",
-        aspectRatio === "portrait" && "aspect-[3/4]",
-        className
-      )}>
-        <span className="text-muted-foreground text-sm">No images</span>
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-lg bg-muted text-muted-foreground",
+          aspectClass(aspectRatio, fillContainer),
+          className,
+        )}
+      >
+        <span className="text-sm">Нет фото</span>
       </div>
     )
   }
 
   if (images.length === 1) {
     return (
-      <div 
+      <div
         className={cn(
           "relative overflow-hidden rounded-lg",
-          aspectRatio === "square" && "aspect-square",
-          aspectRatio === "video" && "aspect-video",
-          aspectRatio === "portrait" && "aspect-[3/4]",
-          className
+          aspectClass(aspectRatio, fillContainer),
+          className,
         )}
-        onClick={() => onImageClick?.(0)}
+        onClick={() => onImageClickRef.current?.(0)}
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            onImageClickRef.current?.(0)
+          }
+        }}
+        role={onImageClick ? "button" : undefined}
+        tabIndex={onImageClick ? 0 : undefined}
       >
         <Image
           src={images[0]}
@@ -76,83 +171,82 @@ export function ImageCarousel({
           fill
           className={cn("object-cover", imageClassName)}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          draggable={false}
         />
       </div>
     )
   }
 
+  /** Как в ленте (FeedPostCard): без touch-pan-x на обёртках — иначе жесты часто не доходят до Embla */
   return (
-    <div 
-      className={cn(
-        "group relative overflow-hidden rounded-lg",
-        aspectRatio === "square" && "aspect-square",
-        aspectRatio === "video" && "aspect-video",
-        aspectRatio === "portrait" && "aspect-[3/4]",
-        className
-      )}
+    <div
+      className={cn("group relative w-full overflow-hidden bg-muted", fillContainer && "h-full min-h-0", className)}
+      onPointerDown={e => e.stopPropagation()}
     >
-      {/* Main Image */}
-      <div 
-        className="relative h-full w-full cursor-pointer"
-        onClick={() => onImageClick?.(currentIndex)}
+      <Carousel
+        setApi={setApi}
+        opts={{ align: "start", loop: false, dragFree }}
+        className={cn("w-full", fillContainer && "h-full min-h-0")}
       >
-        <Image
-          src={images[currentIndex]}
-          alt={`${alt} ${currentIndex + 1}`}
-          fill
-          className={cn("object-cover transition-opacity duration-300", imageClassName)}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-      </div>
-
-      {/* Navigation Arrows */}
-      {showControls && images.length > 1 && (
-        <>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute left-2 top-1/2 size-8 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onClick={goToPrevious}
-          >
-            <ChevronLeft className="size-4" />
-            <span className="sr-only">Previous image</span>
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-2 top-1/2 size-8 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onClick={goToNext}
-          >
-            <ChevronRight className="size-4" />
-            <span className="sr-only">Next image</span>
-          </Button>
-        </>
-      )}
-
-      {/* Dots Indicator */}
-      {showDots && images.length > 1 && (
-        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
-          {images.map((_, index) => (
-            <button
-              key={index}
-              onClick={(e) => goToSlide(index, e)}
-              className={cn(
-                "size-2 rounded-full transition-all",
-                index === currentIndex 
-                  ? "bg-white w-4" 
-                  : "bg-white/60 hover:bg-white/80"
-              )}
-            >
-              <span className="sr-only">Go to image {index + 1}</span>
-            </button>
+        <CarouselContent className={cn("-ml-0", fillContainer && "h-full")}>
+          {images.map((src, i) => (
+            <CarouselItem key={`${src}-${i}`} className={cn("basis-full pl-0", fillContainer && "h-full min-h-0")}>
+              <div
+                className={cn(
+                  "relative w-full select-none",
+                  fillContainer ? "h-full min-h-0" : aspectClass(aspectRatio, false),
+                )}
+              >
+                <Image
+                  src={src}
+                  alt={`${alt} ${i + 1}`}
+                  fill
+                  className={cn("object-cover", imageClassName)}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  priority={i === 0}
+                  draggable={false}
+                />
+              </div>
+            </CarouselItem>
           ))}
-        </div>
-      )}
+        </CarouselContent>
 
-      {/* Image Counter */}
-      <div className="absolute right-2 top-2 rounded-full bg-background/80 px-2 py-1 text-xs font-medium backdrop-blur-sm">
-        {currentIndex + 1}/{images.length}
-      </div>
+        {showControls ? (
+          <>
+            <CarouselPrevious
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="absolute left-2 top-1/2 z-10 size-8 -translate-y-1/2 rounded-full border-0 bg-background/80 opacity-0 shadow-sm backdrop-blur-sm transition-opacity hover:bg-background/90 group-hover:opacity-100"
+              onClick={e => e.stopPropagation()}
+            />
+            <CarouselNext
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="absolute right-2 top-1/2 z-10 size-8 -translate-y-1/2 rounded-full border-0 bg-background/80 opacity-0 shadow-sm backdrop-blur-sm transition-opacity hover:bg-background/90 group-hover:opacity-100"
+              onClick={e => e.stopPropagation()}
+            />
+          </>
+        ) : null}
+
+        {showDots ? (
+          <div
+            className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-1"
+            aria-hidden
+          >
+            {images.map((_, index) => (
+              <span
+                key={index}
+                className={cn(
+                  "size-1.5 rounded-full bg-white/90 shadow transition-opacity",
+                  index === selected ? "opacity-100" : "opacity-35",
+                )}
+              />
+            ))}
+          </div>
+        ) : null}
+      </Carousel>
     </div>
   )
 }

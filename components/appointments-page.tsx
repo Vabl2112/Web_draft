@@ -254,7 +254,7 @@ export function AppointmentsPage() {
             {appointment.status === "completed" && appointment.canReview && (
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Star className="size-4" />
-                Оставить отзыв
+                Отзыв об услуге
               </Button>
             )}
             {appointment.status === "completed" && !appointment.canReview && (

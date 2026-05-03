@@ -305,7 +305,7 @@ export function FavoritesPage() {
                     Сохраняйте понравившиеся работы для вдохновения
                   </p>
                   <Link href="/gallery">
-                    <Button className="mt-4">Смотреть галерею</Button>
+                    <Button className="mt-4">Смотреть витрину</Button>
                   </Link>
                 </div>
               ) : (

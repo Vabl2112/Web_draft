@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Clock, Star, TrendingUp, ChevronLeft, ChevronRight, Heart } from "lucide-react"
+import { Clock, Star, TrendingUp, Heart } from "lucide-react"
+import { ImageCarousel } from "@/components/image-carousel"
 import { EntityActionsDropdown } from "@/components/entity-share-menu"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -40,23 +40,12 @@ function formatPrice(from: number, to: number | null): string {
 
 export function ServiceCard({ service }: ServiceCardProps) {
   const router = useRouter()
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
-  const images = service.images || []
+  const images = service.images?.length ? service.images : []
   const hasImages = images.length > 0
 
   const handleCardClick = () => {
     router.push(`/service/${service.id}`)
-  }
-
-  const nextImage = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev + 1) % images.length)
-  }
-
-  const prevImage = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
   return (
@@ -67,52 +56,13 @@ export function ServiceCard({ service }: ServiceCardProps) {
       {/* Image Section */}
       {hasImages && (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-          <Image
-            src={images[currentImageIndex]}
+          <ImageCarousel
+            images={images}
             alt={service.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            aspectRatio="video"
+            className="rounded-none"
+            showControls={false}
           />
-          {images.length > 1 && (
-            <>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  prevImage(e)
-                }}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  nextImage(e)
-                }}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
-                {images.map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`size-1.5 rounded-full transition-colors ${
-                      idx === currentImageIndex ? "bg-white" : "bg-white/50"
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCurrentImageIndex(idx)
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
           {service.popular && (
             <Badge className="absolute left-3 top-3 gap-1 bg-amber-100 text-amber-700">
               <TrendingUp className="size-3" />

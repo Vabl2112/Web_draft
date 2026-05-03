@@ -258,7 +258,7 @@ export function MasterProfileEditor() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="portfolio" className="text-xs sm:text-sm">
               <ImageIcon className="mr-1 size-4 sm:mr-2" />
-              <span className="hidden sm:inline">Фото</span>
+              <span className="hidden sm:inline">Витрина</span>
             </TabsTrigger>
             <TabsTrigger value="info" className="text-xs sm:text-sm">
               <FileText className="mr-1 size-4 sm:mr-2" />
@@ -274,10 +274,10 @@ export function MasterProfileEditor() {
             </TabsTrigger>
           </TabsList>
           
-          {/* Portfolio Tab */}
+          {/* Витрина (фото) */}
           <TabsContent value="portfolio" className="mt-4 space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Портфолио</Label>
+              <Label className="text-base font-semibold">Витрина</Label>
               <div className="flex items-center gap-2">
                 <Label htmlFor="show-portfolio" className="text-sm text-muted-foreground">
                   Показывать
@@ -371,7 +371,7 @@ export function MasterProfileEditor() {
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div className="flex items-center gap-3">
                     <ImageIcon className="size-5 text-muted-foreground" />
-                    <span>Портфолио</span>
+                    <span>Витрина</span>
                   </div>
                   <Switch checked={showPortfolio} onCheckedChange={setShowPortfolio} />
                 </div>

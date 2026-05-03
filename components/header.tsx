@@ -19,9 +19,9 @@ import { useAuth } from "@/lib/auth-context"
 
 const navLinks = [
   { href: "/masters", label: "Мастера" },
-  { href: "/gallery", label: "Фотогалерея" },
-  { href: "/services", label: "Услуги" },
-  { href: "/products", label: "Товары" },
+  { href: "/gallery", label: "Витрина" },
+  { href: "/products", label: "Товары и услуги" },
+  { href: "/articles", label: "Статьи" },
 ]
 
 const cities = [

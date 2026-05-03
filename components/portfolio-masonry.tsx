@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
-import { Heart, MessageCircle, MoreVertical, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Heart, MessageCircle, MoreVertical, Edit2, Trash2 } from "lucide-react"
+import { ImageCarousel } from "@/components/image-carousel"
 import { Button } from "@/components/ui/button"
 import { PhotoDetailModal, type PhotoDetail, type PhotoComment } from "@/components/photo-detail-modal"
 import { PortfolioItemEditor } from "@/components/portfolio-item-editor"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { EntityActionsDropdown, EntityShareMenuItems } from "@/components/entity-share-menu"
 import type { PortfolioItem } from "@/lib/types"
+import { normalizeShowcaseKind, ShowcaseKindBadge } from "@/components/showcase-kind-badge"
 
 interface PortfolioMasonryProps {
   items: PortfolioItem[]
@@ -83,7 +84,7 @@ export function PortfolioMasonry({
 }: PortfolioMasonryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDetail | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
-  const [currentImageIndices, setCurrentImageIndices] = useState<Record<string, number>>({})
+  const [slideByItem, setSlideByItem] = useState<Record<string, number>>({})
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null)
@@ -124,11 +125,12 @@ export function PortfolioMasonry({
   const handleImageClick = (item: PortfolioItem) => {
     const index = items.findIndex(i => i.id === item.id)
     const images = getImages(item)
-    const currentIdx = currentImageIndices[item.id] || 0
-    
+    const currentIdx = slideByItem[item.id] ?? 0
+
     const photoDetail: PhotoDetail = {
       id: item.id,
       imageUrl: images[currentIdx] || images[0],
+      images,
       title: item.title,
       description: item.description || `Работа "${item.title}" выполнена профессиональным мастером.`,
       author: artistName,
@@ -156,24 +158,6 @@ export function PortfolioMasonry({
     }
   }
 
-  const handleCarouselNav = (itemId: string, direction: "prev" | "next", e: React.MouseEvent) => {
-    e.stopPropagation()
-    const item = items.find(i => i.id === itemId)
-    if (!item) return
-    
-    const images = getImages(item)
-    const currentIdx = currentImageIndices[itemId] || 0
-    
-    let newIdx: number
-    if (direction === "prev") {
-      newIdx = currentIdx === 0 ? images.length - 1 : currentIdx - 1
-    } else {
-      newIdx = currentIdx === images.length - 1 ? 0 : currentIdx + 1
-    }
-    
-    setCurrentImageIndices(prev => ({ ...prev, [itemId]: newIdx }))
-  }
-
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -194,62 +178,30 @@ export function PortfolioMasonry({
           <div key={columnIndex} className="flex flex-col gap-3">
             {column.map((item) => {
               const images = getImages(item)
-              const currentIdx = currentImageIndices[item.id] || 0
-              const currentImage = images[currentIdx] || images[0]
-              const hasMultipleImages = images.length > 1
-              
+              const cardKind = normalizeShowcaseKind(item.showcaseKind)
+
               return (
                 <div
                   key={item.id}
                   className={`group relative overflow-hidden rounded-xl ${getHeightClass(item.height)}`}
                 >
-                  <button
-                    onClick={() => handleImageClick(item)}
-                    className="absolute inset-0 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  >
-                    <Image
-                      src={currentImage}
+                  <div className="absolute left-2 top-2 z-[15]">
+                    <ShowcaseKindBadge kind={cardKind} />
+                  </div>
+                  <div className="relative z-0 h-full w-full min-h-0">
+                    <ImageCarousel
+                      images={images}
                       alt={item.title}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      fillContainer
+                      aspectRatio="auto"
+                      className="rounded-xl"
+                      showControls={false}
+                      showDots={images.length > 1}
+                      onSlideChange={i => setSlideByItem(prev => ({ ...prev, [item.id]: i }))}
+                      onImageClick={() => handleImageClick(item)}
                     />
-                  </button>
-                  
-                  {/* Carousel navigation for multiple images */}
-                  {hasMultipleImages && (
-                    <>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute left-2 top-1/2 size-7 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100 bg-background/80"
-                        onClick={(e) => handleCarouselNav(item.id, "prev", e)}
-                      >
-                        <ChevronLeft className="size-4" />
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute right-2 top-1/2 size-7 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100 bg-background/80"
-                        onClick={(e) => handleCarouselNav(item.id, "next", e)}
-                      >
-                        <ChevronRight className="size-4" />
-                      </Button>
-                      
-                      {/* Dots indicator */}
-                      <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 gap-1">
-                        {images.map((_, idx) => (
-                          <span
-                            key={idx}
-                            className={`size-1.5 rounded-full transition-all ${
-                              idx === currentIdx ? "bg-white w-3" : "bg-white/60"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                
+                  </div>
+
                   {/* Hover overlay */}
                   <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
                     <div className="flex items-center gap-1 text-white">
@@ -305,7 +257,7 @@ export function PortfolioMasonry({
                           <EntityShareMenuItems
                             sharePath={`/master/${masterId}`}
                             shareTitle={`${item.title} — ${artistName}`}
-                            reportKind="работа в портфолио"
+                            reportKind="публикация на витрине"
                             showReport={false}
                           />
                         </DropdownMenuContent>
@@ -314,7 +266,7 @@ export function PortfolioMasonry({
                       <EntityActionsDropdown
                         sharePath={`/master/${masterId}`}
                         shareTitle={`${item.title} — ${artistName}`}
-                        reportKind="работа в портфолио"
+                        reportKind="публикация на витрине"
                         icon="vertical"
                         align="end"
                         triggerClassName="size-9 rounded-md border border-border/70 bg-background/95 shadow-sm"
@@ -369,9 +321,9 @@ export function PortfolioMasonry({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить работу?</AlertDialogTitle>
+            <AlertDialogTitle>Удалить с витрины?</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Работа будет удалена из вашего портфолио.
+              Это действие нельзя отменить. Карточка будет удалена с витрины.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

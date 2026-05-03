@@ -373,6 +373,54 @@ export const servicesFiltersConfig: FiltersConfig = {
   ],
 }
 
+/** Объединённый каталог: категории охватывают и товары, и услуги (см. lib/catalog-listing) */
+export const catalogFiltersConfig: FiltersConfig = {
+  categories: [
+    { id: "tattoo", name: "Тату", icon: "pen-tool", subFilters: [] },
+    { id: "piercing", name: "Пирсинг", icon: "circle-dot", subFilters: [] },
+    { id: "permanent", name: "Перманент", icon: "eye", subFilters: [] },
+    { id: "removal", name: "Удаление / лазер", icon: "zap", subFilters: [] },
+    { id: "consultation", name: "Консультации", icon: "message-circle", subFilters: [] },
+    { id: "care", name: "Уход и косметика", icon: "droplet", subFilters: [] },
+    { id: "equipment", name: "Оборудование", icon: "settings", subFilters: [] },
+    { id: "jewelry", name: "Украшения", icon: "gem", subFilters: [] },
+    { id: "merch", name: "Мерч и подарки", icon: "image", subFilters: [] },
+  ],
+  commonFilters: [
+    {
+      id: "price-range",
+      name: "Цена",
+      type: "single",
+      options: [
+        { id: "any", name: "Любая", count: 500 },
+        { id: "0-3000", name: "До 3 000 ₽", count: 120 },
+        { id: "3000-10000", name: "3 000 – 10 000 ₽", count: 180 },
+        { id: "10000-25000", name: "10 000 – 25 000 ₽", count: 140 },
+        { id: "25000+", name: "От 25 000 ₽", count: 60 },
+      ],
+    },
+    {
+      id: "availability",
+      name: "Наличие (товары)",
+      type: "checkbox",
+      options: [
+        { id: "in-stock", name: "В наличии", count: 345 },
+      ],
+    },
+    {
+      id: "duration",
+      name: "Длительность (услуги)",
+      type: "single",
+      options: [
+        { id: "any", name: "Любая", count: 500 },
+        { id: "short", name: "До 1 ч", count: 120 },
+        { id: "medium", name: "1–3 ч", count: 200 },
+        { id: "long", name: "От 3 ч / несколько дней", count: 80 },
+      ],
+    },
+  ],
+}
+
 // Mock data for Products filters
 export const productsFiltersConfig: FiltersConfig = {
   categories: [
@@ -576,7 +624,9 @@ export const productsFiltersConfig: FiltersConfig = {
 }
 
 // API simulation function - will be replaced with actual API call
-export async function fetchFiltersConfig(type: "masters" | "services" | "products"): Promise<FiltersConfig> {
+export async function fetchFiltersConfig(
+  type: "masters" | "services" | "products" | "catalog",
+): Promise<FiltersConfig> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300))
   
@@ -587,6 +637,8 @@ export async function fetchFiltersConfig(type: "masters" | "services" | "product
       return servicesFiltersConfig
     case "products":
       return productsFiltersConfig
+    case "catalog":
+      return catalogFiltersConfig
     default:
       return { categories: [] }
   }

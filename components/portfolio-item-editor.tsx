@@ -123,7 +123,7 @@ export function PortfolioItemEditor({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {mode === "add" ? "Добавить в портфолио" : "Редактировать работу"}
+            {mode === "add" ? "Добавить на витрину" : "Редактировать публикацию"}
           </DialogTitle>
           <DialogDescription>
             Загрузите фотографии и добавьте описание работы

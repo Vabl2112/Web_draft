@@ -9,12 +9,13 @@ const footerLinks = {
   company: [
     { href: "/about", label: "О нас" },
     { href: "/masters", label: "Авторы" },
-    { href: "/gallery", label: "Галерея" },
+    { href: "/gallery", label: "Витрина" },
+    { href: "/articles", label: "Статьи" },
     { href: "/careers", label: "Вакансии" },
   ],
   services: [
-    { href: "/services", label: "Услуги" },
-    { href: "/products", label: "Товары" },
+    { href: "/products", label: "Товары и услуги" },
+    { href: "/services", label: "Только услуги" },
     { href: "/faq", label: "Вопросы" },
   ],
   support: [
